@@ -1,7 +1,6 @@
 # Injular
 
 [![npm version](http://img.shields.io/npm/v/bs-injular.svg)](https://npmjs.org/package/bs-injular)
-[![bower version](https://img.shields.io/bower/v/bs-injular.svg)](https://github.com/tfoxy/bs-injular/releases)
 [![build status](https://img.shields.io/travis/tfoxy/bs-injular.svg)](https://travis-ci.org/tfoxy/bs-injular)
 
 > Inject angular templates and controllers without reloading the page

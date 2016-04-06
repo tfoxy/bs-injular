@@ -1,0 +1,41 @@
+{
+  "name": "bs-injular",
+  "version": "0.1.0",
+  "description": "Inject angular templates and controllers without reloading the page",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "npm run lint && mocha",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tfoxy/bs-injular.git"
+  },
+  "keywords": [
+    "browser-sync",
+    "angular",
+    "template",
+    "controller"
+  ],
+  "author": "Tomás Fox <tomas.c.fox@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tfoxy/bs-injular/issues"
+  },
+  "dependencies": {
+    "extend": "~3.0.0",
+    "minimatch": "~3.0.0",
+    "tamper": "0.1.0"
+  },
+  "devDependencies": {
+    "browser-sync": "~2.11.2",
+    "chai": "~3.5.0",
+    "chai-string": "~1.2.0",
+    "eslint": "~2.4.0",
+    "immutable": "^3.7.4",
+    "mocha": "~2.4.5",
+    "mock-fs": "~3.8.0",
+    "sinon": "~1.17.3",
+    "sinon-chai": "~2.8.0"
+  }
+}

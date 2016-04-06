@@ -1,0 +1,10 @@
+{
+  "extends": "../.eslintrc.json",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  }
+}

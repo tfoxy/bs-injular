@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+- '4'
+deploy:
+  provider: npm
+  email: tomas.c.fox@gmail.com
+  api_key:
+    secure: hUdpuvQUM/OEZ69Pdz/Hvml/wfbxMa6CsbPKh12PUzxk/OBfLtkpUFkGw7tIMI9XDn1Ws5NZWfqyzQsb+L/jLoWwLopPRSjIiXFWgEHJp6GH52rtGhHllr/gg22DOTxAPlJTHXK1ENoZ5qkoxfGaStae0gYRLv8dU9KNlJP82LV7JB3eIgMEsIQnYfJ5fl+8t2P27pOGNA5UeW5/8QcyGA7mNp3cmttEVTa49ZuY/Vkfjfp9CEVfbhKD9vj65hvmsMUrRy0DDUb9fdcjvhYUOEgqctLGWdIok7x2wdv09to/sw4RkkbAQajYg3l3JHRh8GZYsETrb0eNNqER2sFV/G1AnqZ0V1M141o3txntxHHkwJO5Jy1mhuFdHvhcoZoDsZZNrLRjGTM8nOqfVCBegc2pi7EaE99oaYnjhsl8PbF/6I9fSQR4CmceNaSWw0jL1GpsmWcOTKF7maUzqHAFkm0uc2JWjMdKZATUMNYZOPkjN/qc3TGlaEnSszLVot8LwPjBjcTcAif2gEFcjgvmWk9GvwbwxAmZir2dDyo3kNT7o+gD8rQg+OIrl8f6HT6dpQWQbZgCAGC0otExIwDsfyz/xeQDYyH1jD94STii+7xQnnW3N5b0h60KqWfaesXXm66OKli6+bQjD3kgpBHfR2NtL+x2Nhox6nLpK7a1xvs=
+  on:
+    tags: true
+    repo: tfoxy/bs-injular

@@ -1,0 +1,12 @@
+{
+  "extends": "../.eslintrc.json",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "env": {
+    "node": true
+  },
+  "globals": {
+    "Map": false
+  }
+}

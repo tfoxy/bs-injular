@@ -117,26 +117,36 @@
 
   function getInjector() {
     var elem = getAppElement();
-    return angular.element(elem).injector();
+    var $injector = angular.element(elem).injector();
+
+    if (!$injector) {
+      throwError('Can\'t find $injector in [ng-app] element');
+    }
+
+    return $injector;
   }
 
 
   function replaceTemplateCache($templateCache, templateUrl, template) {
+    var cacheUrls = [];
     var cacheUrl = templateUrl;
+    cacheUrls.push(cacheUrl);
     var cache = $templateCache.get(cacheUrl);
 
     if (!cache && templateUrl.charAt(0) === '/') {
       cacheUrl = templateUrl.slice(1);
+      cacheUrls.push(cacheUrl);
       cache = $templateCache.get(cacheUrl);
     }
 
     if (!cache && templateUrl.lastIndexOf(location.pathname, 0) === 0) {
       cacheUrl = templateUrl.slice(location.pathname.length);
+      cacheUrls.push(cacheUrl);
       cache = $templateCache.get(cacheUrl);
     }
 
     if (!cache) {
-      throwError('Can\'t find template ' + templateUrl);
+      throwError('Can\'t find templateCache of any of the following urls: ' + cacheUrls);
     }
 
     $templateCache.remove(cacheUrl);
@@ -179,12 +189,13 @@
 
   function createInjularCommentWalker(templateUrl) {
     var tw, node;
+    var root = getAppElement();
 
     if (document.createTreeWalker) {
-      tw = document.createTreeWalker(document, NodeFilter.SHOW_COMMENT, null, null);
+      tw = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, null, null);
     } else {
       // for IE8
-      tw = createTreeWalker();
+      tw = createTreeWalker(root);
     }
 
     return {
@@ -203,8 +214,8 @@
   }
 
 
-  function createTreeWalker() {
-    var node = {childNodes: [document.documentElement]};
+  function createTreeWalker(root) {
+    var node = {childNodes: [root]};
     var stack = [];
     return {
       nextNode: nextNode

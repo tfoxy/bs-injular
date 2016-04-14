@@ -1,0 +1,17 @@
+{
+  "extends": "../.eslintrc.json",
+  "parserOptions": {
+    "ecmaVersion": 3
+  },
+  "env": {
+    "browser": true,
+    "mocha": true,
+    "jasmine": true
+  },
+  "globals": {
+    "angular": false
+  },
+  "rules": {
+    "no-console": 0
+  }
+}

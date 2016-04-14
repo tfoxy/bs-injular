@@ -4,7 +4,7 @@
   "description": "Inject angular templates and controllers without reloading the page",
   "main": "lib/index.js",
   "scripts": {
-    "test": "npm run lint && mocha",
+    "test": "npm run lint && mocha && karma start --single-run",
     "lint": "eslint ."
   },
   "repository": {
@@ -28,13 +28,19 @@
     "tamper": "0.1.0"
   },
   "devDependencies": {
+    "angular": "~1.5.3",
     "browser-sync": "~2.11.2",
     "chai": "~3.5.0",
     "chai-string": "~1.2.0",
     "eslint": "~2.4.0",
     "immutable": "^3.7.4",
+    "karma": "~0.13.22",
+    "karma-chai-sinon": "~0.1.5",
+    "karma-mocha": "~0.2.2",
+    "karma-phantomjs-launcher": "~1.0.0",
     "mocha": "~2.4.5",
     "mock-fs": "~3.8.0",
+    "phantomjs-prebuilt": "~2.1.7",
     "sinon": "~1.17.3",
     "sinon-chai": "~2.8.0"
   }

@@ -5,7 +5,6 @@
   var CONTROLLER_CHANGED_EVENT = 'injularController:changed';
 
   var sockets = bs.socket;
-  var bsInjular, localAngular;
 
   sockets.on(TEMPLATE_CHANGED_EVENT, templateChangedListener);
   sockets.on(CONTROLLER_CHANGED_EVENT, controllerChangedListener);
@@ -22,7 +21,7 @@
 
   function controllerChangedListener(data) {
     try {
-      initializeLocalAngular();
+      var localAngular = getLocalAngular();
       var jsInjector = new Function('angular', data.fileContent);
       jsInjector(localAngular);
 
@@ -34,29 +33,36 @@
   }
 
 
-  function initializeBsInjular() {
-    var ___bsInjular___ = window.___bsInjular___;
-    if (___bsInjular___) {
-      bsInjular = ___bsInjular___;
+  function getBsInjular() {
+    var bsInjular = window.___bsInjular___;
+
+    if (!bsInjular) {
+      throwError(
+        'Could not get window.___bsInjular___ . ' +
+        'Are you sure the moduleName in the bsInjular options is correct?'
+      );
     }
+
+    return bsInjular;
   }
 
 
-  function initializeLocalAngular() {
-    if (localAngular) {
-      return;
+  function getLocalAngular() {
+    var bsInjular = getBsInjular();
+
+    if (!bsInjular.localAngular) {
+      var $controllerProvider = bsInjular.$controllerProvider;
+      if ($controllerProvider) {
+        bsInjular.localAngular = createLocalAngular($controllerProvider);
+      } else {
+        throwError(
+          'Could not get $controllerProvider. ' +
+          'Are you sure the moduleName in the bsInjular options is correct?'
+        );
+      }
     }
 
-    initializeBsInjular();
-
-    if (bsInjular && bsInjular.$controllerProvider) {
-      localAngular = createLocalAngular();
-    } else {
-      throwError(
-        'Could not get $controllerProvider. ' +
-        'Are you sure the moduleName is correct?'
-      );
-    }
+    return bsInjular.localAngular;
   }
 
 
@@ -67,7 +73,7 @@
       $injector.get('$route').reload();
     } else {
       throwError(
-        'Cannot reload controller because ' +
+        'Cannot reload route because ' +
         'neither $state nor $route are present in $injector'
       );
     }
@@ -75,8 +81,6 @@
 
 
   function tryTemplateChangedListener(data) {
-    validateAngularExistance();
-
     var $injector = getInjector();
 
     var $templateCache = $injector.get('$templateCache');
@@ -93,10 +97,14 @@
   }
 
 
-  function validateAngularExistance() {
-    if (!window.angular) {
+  function getAngular() {
+    var angular = window.angular;
+
+    if (!angular) {
       throwError('Can\'t find window.angular');
     }
+
+    return angular;
   }
 
 
@@ -246,7 +254,8 @@
   }
 
 
-  function createLocalAngular() {
+  function createLocalAngular($controllerProvider) {
+    var angular = getAngular();
     var localAngular = angular.copy(angular);
     var moduleFn = localAngular.module;
     localAngular.module = injularModule;
@@ -260,7 +269,6 @@
     }
 
     function injularControllerRecipe() {
-      var $controllerProvider = bsInjular.$controllerProvider;
       $controllerProvider.register.apply($controllerProvider, arguments);
       return this;
     }

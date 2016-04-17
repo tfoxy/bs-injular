@@ -9,7 +9,8 @@
     "jasmine": true
   },
   "globals": {
-    "angular": false
+    "angular": false,
+    "sinon": false
   },
   "rules": {
     "no-console": 0

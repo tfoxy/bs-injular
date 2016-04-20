@@ -57,7 +57,7 @@ describe('listenToFileChange', () => {
         controllers: '/app/**/*.controller.js',
         moduleFile: '/app/foo.module.js',
         moduleName: 'app',
-        moduleFileMatched: true
+        matchedModuleFile: '/app/foo.module.js'
       };
 
       mockFs({
@@ -97,7 +97,7 @@ describe('listenToFileChange', () => {
 
     it('should log error when changing a js file and no module file was matched', () => {
       bs.options = bs.options.setIn(['server', 'baseDir'], '.');
-      config.moduleFileMatched = false;
+      delete config.matchedModuleFile;
       listenToFileChange(config, bs);
       bs.emitter.emit('file:changed', controllerEvent);
       expect(config.logger.error).to.have.callCount(1);
@@ -105,7 +105,7 @@ describe('listenToFileChange', () => {
 
     it('should not change data.event when changing a js file and no module file was matched', () => {
       bs.options = bs.options.setIn(['server', 'baseDir'], '.');
-      config.moduleFileMatched = false;
+      delete config.matchedModuleFile;
       listenToFileChange(config, bs);
       bs.emitter.emit('file:changed', controllerEvent);
       expect(controllerEvent.event).to.equal('file:changed');

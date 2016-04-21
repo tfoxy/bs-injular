@@ -2,6 +2,7 @@
 
 const expect = require('chai').expect;
 const sinon = require('sinon');
+
 const fileChanger = require('../lib/fileChanger');
 
 describe('fileChanger', () => {
@@ -87,16 +88,83 @@ describe('fileChanger', () => {
 
     it('should replace angular.module when evaluated', () => {
       let content = fileChanger.appendAngularDirectivePatch('');
-      let evaluate = new Function('angular', 'window', content);
+      let evaluate = new Function('angular', 'window', 'document', content);
       let window = {};
+      let document = {};
       let module = sinon.spy();
       let angular = {
         module
       };
 
-      evaluate(angular, window);
+      evaluate(angular, window, document);
 
       expect(angular.module).to.not.equal(module);
+    });
+
+    it('should call original angular.module when evaluated and angular.module is called', () => {
+      let content = fileChanger.appendAngularDirectivePatch('');
+      let evaluate = new Function('angular', 'window', 'document', content);
+      let window = {};
+      let document = {};
+      let module = {};
+      let moduleFn = sinon.spy(() => {
+        return module;
+      });
+      let angular = {
+        module: moduleFn
+      };
+
+      evaluate(angular, window, document);
+      angular.module();
+
+      expect(moduleFn).to.have.callCount(1);
+    });
+
+    it('should replace module.directive when evaluated and angular.module is called', () => {
+      let content = fileChanger.appendAngularDirectivePatch('');
+      let evaluate = new Function('angular', 'window', 'document', content);
+      let window = {};
+      let document = {currentScript: {src: '/foo.directive.js'}};
+      let directive = sinon.spy();
+      let module = {
+        directive
+      };
+      let moduleFn = () => {
+        return module;
+      };
+      let angular = {
+        module: moduleFn
+      };
+
+      evaluate(angular, window, document);
+      angular.module();
+
+      expect(module.directive).to.not.equal(directive);
+    });
+
+    it('should call original module.directive when new module.directive is called', () => {
+      let content = fileChanger.appendAngularDirectivePatch('');
+      let evaluate = new Function('angular', 'window', 'document', content);
+      let window = {};
+      let document = {currentScript: {src: '/foo.directive.js'}};
+      let directive = sinon.spy();
+      let module = {
+        directive
+      };
+      let moduleFn = () => {
+        return module;
+      };
+      let angular = {
+        module: moduleFn,
+        injector: {$$annotate: () => {return [];}},
+        isArray: Array.isArray,
+        isString: (s) => {return typeof s === 'string';}
+      };
+
+      evaluate(angular, window, document);
+      angular.module().directive('foo', sinon.spy());
+
+      expect(directive).to.have.callCount(1);
     });
 
   });

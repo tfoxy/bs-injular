@@ -127,6 +127,7 @@
 
 
   function getInjector() {
+    var angular = getAngular();
     var elem = getAppElement();
     var $injector = angular.element(elem).injector();
 

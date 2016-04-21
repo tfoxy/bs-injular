@@ -1,6 +1,6 @@
 'use strict';
 
-describe('template changed listener', function() {
+describe('controller changed listener', function() {
   var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[CONTROLLER_CHANGED_EVENT];
@@ -91,6 +91,9 @@ describe('template changed listener', function() {
 
 
   it('should print a warning when window.___bsInjular___ is not found', function() {
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element);
     listener({
       script: ''
     });
@@ -101,6 +104,9 @@ describe('template changed listener', function() {
 
 
   it('should print a warning when ___bsInjular___.$controllerProvider is not found', function() {
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element);
     window.___bsInjular___ = {};
     listener({
       script: ''
@@ -116,7 +122,6 @@ describe('template changed listener', function() {
 
     before(function() {
       angular = window.angular;
-      delete window.angular;
     });
 
     after(function() {
@@ -124,6 +129,10 @@ describe('template changed listener', function() {
     });
 
     it('should print a warning when window.angular is not found', function() {
+      var element = angular.element('<div ng-app="app"></div>');
+      rootElement.append(element);
+      angular.bootstrap(element);
+      delete window.angular;
       window.___bsInjular___ = {$controllerProvider: {}};
       listener({
         script: ''

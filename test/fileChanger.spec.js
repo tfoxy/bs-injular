@@ -142,7 +142,7 @@ describe('fileChanger', () => {
       expect(module.directive).to.not.equal(directive);
     });
 
-    it('should call original module.directive when new module.directive is called', () => {
+    it('should call original module.directive with an array factory when new module.directive is called', () => {
       let content = fileChanger.appendAngularDirectivePatch('');
       let evaluate = new Function('angular', 'window', 'document', content);
       let window = {};
@@ -165,6 +165,8 @@ describe('fileChanger', () => {
       angular.module().directive('foo', sinon.spy());
 
       expect(directive).to.have.callCount(1);
+      expect(directive).to.have.been.calledWith('foo');
+      expect(directive.args[0][1]).to.be.an('array').that.has.length(1);
     });
 
   });

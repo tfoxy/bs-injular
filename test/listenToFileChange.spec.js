@@ -86,13 +86,13 @@ describe('listenToFileChange', () => {
         .and.to.have.been.calledWith('injularTemplate:changed');
     });
 
-    it('should emit "injularController:changed" when changing a js file', () => {
+    it('should emit "injularScript:changed" when changing a js file', () => {
       bs.options = bs.options.setIn(['server', 'baseDir'], '.');
       listenToFileChange(config, bs);
       sinon.spy(bs.io.sockets, 'emit');
       bs.emitter.emit('file:changed', controllerEvent);
       expect(bs.io.sockets.emit).to.have.callCount(1)
-        .and.to.have.been.calledWith('injularController:changed');
+        .and.to.have.been.calledWith('injularScript:changed');
     });
 
     it('should log error when changing a js file and no module file was matched', () => {

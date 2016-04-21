@@ -1,7 +1,7 @@
 'use strict';
 
 describe('template changed listener', function() {
-  var CONTROLLER_CHANGED_EVENT = 'injularController:changed';
+  var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[CONTROLLER_CHANGED_EVENT];
   var rootElement, warn;
@@ -35,7 +35,7 @@ describe('template changed listener', function() {
     angular.bootstrap(element, ['app', provideRouteSpy]);
 
     listener({
-      fileContent: "angular.module('app').controller('fooCtrl', function(){})"
+      script: "angular.module('app').controller('fooCtrl', function(){})"
     });
 
     expect($controllerProvider.register).to.have.callCount(1);
@@ -57,7 +57,7 @@ describe('template changed listener', function() {
     angular.bootstrap(element, ['app', provideRouteSpy]);
 
     listener({
-      fileContent: ''
+      script: ''
     });
 
     expect($route.reload).to.have.callCount(1);
@@ -78,7 +78,7 @@ describe('template changed listener', function() {
     angular.bootstrap(element, ['app', provideStateSpy]);
 
     listener({
-      fileContent: ''
+      script: ''
     });
 
     expect($state.reload).to.have.callCount(1);
@@ -92,7 +92,7 @@ describe('template changed listener', function() {
 
   it('should print a warning when window.___bsInjular___ is not found', function() {
     listener({
-      fileContent: ''
+      script: ''
     });
 
     expect(console.warn).to.have.callCount(1);
@@ -103,7 +103,7 @@ describe('template changed listener', function() {
   it('should print a warning when ___bsInjular___.$controllerProvider is not found', function() {
     window.___bsInjular___ = {};
     listener({
-      fileContent: ''
+      script: ''
     });
 
     expect(console.warn).to.have.callCount(1);
@@ -126,7 +126,7 @@ describe('template changed listener', function() {
     it('should print a warning when window.angular is not found', function() {
       window.___bsInjular___ = {$controllerProvider: {}};
       listener({
-        fileContent: ''
+        script: ''
       });
 
       expect(console.warn).to.have.callCount(1);

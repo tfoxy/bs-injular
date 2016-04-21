@@ -2,12 +2,12 @@
 (function (bs) {
   'use strict';
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
-  var CONTROLLER_CHANGED_EVENT = 'injularController:changed';
+  var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
 
   var sockets = bs.socket;
 
   sockets.on(TEMPLATE_CHANGED_EVENT, templateChangedListener);
-  sockets.on(CONTROLLER_CHANGED_EVENT, controllerChangedListener);
+  sockets.on(CONTROLLER_CHANGED_EVENT, scriptChangedListener);
 
 
   function templateChangedListener(data) {
@@ -19,13 +19,15 @@
   }
 
 
-  function controllerChangedListener(data) {
+  function scriptChangedListener(data) {
     try {
-      var localAngular = getLocalAngular();
-      var jsInjector = new Function('angular', data.fileContent);
+      var $injector = getInjector();
+
+      var localAngular = getLocalAngular($injector);
+      localAngular._scriptUrl = data.scriptUrl;
+      var jsInjector = new Function('angular', data.script);
       jsInjector(localAngular);
 
-      var $injector = getInjector();
       reloadRoute($injector);
     } catch (err) {
       errorHandler(err);
@@ -47,13 +49,13 @@
   }
 
 
-  function getLocalAngular() {
+  function getLocalAngular($injector) {
     var bsInjular = getBsInjular();
 
     if (!bsInjular.localAngular) {
       var $controllerProvider = bsInjular.$controllerProvider;
       if ($controllerProvider) {
-        bsInjular.localAngular = createLocalAngular($controllerProvider);
+        bsInjular.localAngular = createLocalAngular(bsInjular, $injector);
       } else {
         throwError(
           'Could not get $controllerProvider. ' +
@@ -61,6 +63,7 @@
         );
       }
     }
+    bsInjular.indexByDirectiveName = {};
 
     return bsInjular.localAngular;
   }
@@ -254,7 +257,7 @@
   }
 
 
-  function createLocalAngular($controllerProvider) {
+  function createLocalAngular(bsInjular, $injector) {
     var angular = getAngular();
     var localAngular = angular.copy(angular);
     var moduleFn = localAngular.module;
@@ -265,12 +268,52 @@
       var app = moduleFn.apply(this, arguments);
       app = angular.copy(app);
       app.controller = injularControllerRecipe;
+      app.directive = injularDirectiveRecipe;
       return app;
     }
 
     function injularControllerRecipe() {
-      $controllerProvider.register.apply($controllerProvider, arguments);
+      bsInjular.$controllerProvider.register.apply(bsInjular.$controllerProvider, arguments);
       return this;
+    }
+
+    function injularDirectiveRecipe(name, directiveFactory) {
+      // TODO support for object as first argument
+      // TODO support for removed directive
+      var directivesByName = bsInjular.directivesByUrl[localAngular._scriptUrl];
+      
+      if (directivesByName) {
+        var directiveList = directivesByName[name];
+        
+        if (directiveList) {
+          if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {
+            bsInjular.indexByDirectiveName[name] = 0;
+          }
+          var index = bsInjular.indexByDirectiveName[name]++;
+          if (index < directiveList.length) {
+            var directive = directiveList[index];
+            var newDirective = $injector.invoke(directiveFactory);
+            removeAllProperties(directive);
+            angular.extend(directive, newDirective);
+            return this;
+          }
+        }
+
+        // else, create directive
+        bsInjular.$compileProvider.directive.apply(bsInjular.$compileProvider, arguments);
+
+      } else {
+        console.warn('[BS-Injular] No directives for url: ' + localAngular._scriptUrl);
+      }
+
+      return this;
+    }
+  }
+
+
+  function removeAllProperties(object) {
+    for (var key in object) {
+      delete object[key];
     }
   }
 

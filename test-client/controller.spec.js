@@ -11,13 +11,15 @@ describe('controller changed listener', function() {
     rootElement = angular.element('<div></div>');
     body.append(rootElement);
     warn = console.warn;
-    console.warn = sinon.spy();
+  });
+
+  beforeEach(function() {
+    console.warn = throwWarningError;
   });
 
   afterEach(function() {
     rootElement.children().remove();
     delete window.___bsInjular___;
-    console.warn.reset();
   });
 
   after(function() {
@@ -25,9 +27,12 @@ describe('controller changed listener', function() {
     console.warn = warn;
   });
 
+  function throwWarningError(msg) {
+    throw new Error('Warning printed: ' + msg);
+  }
+
 
   it('should call $controllerProvider.register when receiving an angular.controller file', function() {
-    var $route = {reload: sinon.spy()};
     var $controllerProvider = {register: sinon.spy()};
     window.___bsInjular___ = {$controllerProvider: $controllerProvider};
     var element = angular.element('<div ng-app="app"></div>');
@@ -40,10 +45,9 @@ describe('controller changed listener', function() {
 
     expect($controllerProvider.register).to.have.callCount(1);
     expect($controllerProvider.register).to.have.been.calledWith('fooCtrl');
-    expect(console.warn).to.have.callCount(0);
 
     function provideRouteSpy($provide) {
-      $provide.constant('$route', $route);
+      $provide.constant('$route', {reload: angular.noop});
     }
   });
 
@@ -61,7 +65,6 @@ describe('controller changed listener', function() {
     });
 
     expect($route.reload).to.have.callCount(1);
-    expect(console.warn).to.have.callCount(0);
 
     function provideRouteSpy($provide) {
       $provide.constant('$route', $route);
@@ -82,7 +85,6 @@ describe('controller changed listener', function() {
     });
 
     expect($state.reload).to.have.callCount(1);
-    expect(console.warn).to.have.callCount(0);
 
     function provideStateSpy($provide) {
       $provide.constant('$state', $state);
@@ -94,6 +96,7 @@ describe('controller changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
+    console.warn = sinon.spy();
     listener({
       script: ''
     });
@@ -108,8 +111,9 @@ describe('controller changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
     window.___bsInjular___ = {};
+    console.warn = sinon.spy();
     listener({
-      script: ''
+      script: "angular.module('app').controller('fooCtrl', function(){})"
     });
 
     expect(console.warn).to.have.callCount(1);
@@ -134,6 +138,7 @@ describe('controller changed listener', function() {
       angular.bootstrap(element);
       delete window.angular;
       window.___bsInjular___ = {$controllerProvider: {}};
+      console.warn = sinon.spy();
       listener({
         script: ''
       });
@@ -149,6 +154,7 @@ describe('controller changed listener', function() {
     window.___bsInjular___ = {$controllerProvider: {}};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
+    console.warn = sinon.spy();
 
     listener({
       template: '',
@@ -165,6 +171,7 @@ describe('controller changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
+    console.warn = sinon.spy();
 
     listener({
       template: '',

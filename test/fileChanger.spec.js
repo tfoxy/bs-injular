@@ -5,6 +5,11 @@ const sinon = require('sinon');
 
 const fileChanger = require('../lib/fileChanger');
 
+/* eslint-disable no-empty-function */
+const noop = ()=>{};
+/* eslint-enable no-empty-function */
+
+
 describe('fileChanger', () => {
 
   describe('.wrapTemplate', () => {
@@ -76,7 +81,7 @@ describe('fileChanger', () => {
       let evaluate = new Function('angular', 'window', content);
       let window = {};
       let angular = {
-        module: sinon.spy()
+        module: noop
       };
 
       evaluate(angular, window);
@@ -91,7 +96,7 @@ describe('fileChanger', () => {
       let evaluate = new Function('angular', 'window', 'document', content);
       let window = {};
       let document = {};
-      let module = sinon.spy();
+      let module = noop;
       let angular = {
         module
       };
@@ -125,7 +130,7 @@ describe('fileChanger', () => {
       let evaluate = new Function('angular', 'window', 'document', content);
       let window = {};
       let document = {currentScript: {src: '/foo.directive.js'}};
-      let directive = sinon.spy();
+      let directive = noop;
       let module = {
         directive
       };
@@ -162,7 +167,7 @@ describe('fileChanger', () => {
       };
 
       evaluate(angular, window, document);
-      angular.module().directive('foo', sinon.spy());
+      angular.module().directive('foo', noop);
 
       expect(directive).to.have.callCount(1);
       expect(directive).to.have.been.calledWith('foo');

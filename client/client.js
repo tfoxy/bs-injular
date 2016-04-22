@@ -53,15 +53,7 @@
     var bsInjular = getBsInjular();
 
     if (!bsInjular.localAngular) {
-      var $controllerProvider = bsInjular.$controllerProvider;
-      if ($controllerProvider) {
-        bsInjular.localAngular = createLocalAngular(bsInjular, $injector);
-      } else {
-        throwError(
-          'Could not get $controllerProvider. ' +
-          'Are you sure the moduleName in the bsInjular options is correct?'
-        );
-      }
+      bsInjular.localAngular = createLocalAngular(bsInjular, $injector);
     }
     bsInjular.indexByDirectiveName = {};
 
@@ -259,6 +251,7 @@
 
 
   function createLocalAngular(bsInjular, $injector) {
+    var DIRECTIVE_SUFFIX = 'Directive';
     var angular = getAngular();
     var localAngular = angular.copy(angular);
     var moduleFn = localAngular.module;
@@ -274,6 +267,12 @@
     }
 
     function injularControllerRecipe() {
+      if (!bsInjular.$controllerProvider) {
+        throwError(
+          'Could not get $controllerProvider. ' +
+          'Are you sure the moduleName in the bsInjular options is correct?'
+        );
+      }
       bsInjular.$controllerProvider.register.apply(bsInjular.$controllerProvider, arguments);
       return this;
     }
@@ -282,10 +281,10 @@
       // TODO support for object as first argument
       // TODO support for removed directive
       var directivesByName = bsInjular.directivesByUrl[localAngular._scriptUrl];
-      
+
       if (directivesByName) {
         var directiveList = directivesByName[name];
-        
+
         if (directiveList) {
           if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {
             bsInjular.indexByDirectiveName[name] = 0;
@@ -298,11 +297,20 @@
             angular.extend(directive, newDirective);
             return this;
           }
+        } else {
+          directiveList = directivesByName[name] = [];
         }
 
-        // else, create directive
+        // create directive if it does not exists
+        if (!bsInjular.$compileProvider) {
+          throwError(
+            'Could not get $compileProvider. ' +
+            'Are you sure the moduleName in the bsInjular options is correct?'
+          );
+        }
         bsInjular.$compileProvider.directive.apply(bsInjular.$compileProvider, arguments);
-
+        var directives = $injector.get(name + DIRECTIVE_SUFFIX);
+        directiveList.push(directives[directives.length - 1]);
       } else {
         console.warn('[BS-Injular] No directives for url: ' + localAngular._scriptUrl);
       }

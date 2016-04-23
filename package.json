@@ -1,6 +1,6 @@
 {
   "name": "bs-injular",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Inject angular templates and controllers without reloading the page",
   "main": "lib/index.js",
   "scripts": {

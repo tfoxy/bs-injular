@@ -3,6 +3,7 @@
   'use strict';
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
   var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
+  var DIRECTIVE_SUFFIX = 'Directive';
 
   var sockets = bs.socket;
 
@@ -27,6 +28,7 @@
       localAngular._scriptUrl = data.scriptUrl;
       var jsInjector = new Function('angular', data.script);
       jsInjector(localAngular);
+      removeDeletedDirectives($injector, data.scriptUrl);
 
       reloadRoute($injector);
     } catch (err) {
@@ -46,6 +48,37 @@
     }
 
     return bsInjular;
+  }
+
+
+  function removeDeletedDirectives($injector, scriptUrl) {
+    if (!scriptUrl) {
+      return;
+    }
+    var bsInjular = getBsInjular();
+    var indexByDirectiveName = bsInjular.indexByDirectiveName;
+    var directivesByUrl = bsInjular.directivesByUrl;
+    var directivesByName = directivesByUrl[scriptUrl];
+
+    if (directivesByName) {
+      for (var name in directivesByName) {
+        if (directivesByName.hasOwnProperty(name)) {
+          var removeStartIndex = indexByDirectiveName[name] || 0;
+          var directiveList = directivesByName[name].slice(removeStartIndex);
+          if (directiveList.length) {
+            var moduleDirectives = $injector.get(name + DIRECTIVE_SUFFIX);
+            angular.forEach(directiveList, function(directive) {
+              var index = moduleDirectives.indexOf(directive);
+              if (index >= 0) {
+                moduleDirectives.splice(index, 1);
+              }
+            });
+          }
+        }
+      }
+    } else {
+      console.warn('[BS-Injular] No directives for url: ' + scriptUrl);
+    }
   }
 
 
@@ -251,7 +284,6 @@
 
 
   function createLocalAngular(bsInjular, $injector) {
-    var DIRECTIVE_SUFFIX = 'Directive';
     var angular = getAngular();
     var localAngular = angular.copy(angular);
     var moduleFn = localAngular.module;
@@ -278,52 +310,95 @@
     }
 
     function injularDirectiveRecipe(name, directiveFactory) {
-      // TODO support for object as first argument
-      // TODO support for removed directive
-      var directivesByName = bsInjular.directivesByUrl[localAngular._scriptUrl];
+      var directivesByUrl = bsInjular.directivesByUrl;
+      if (!directivesByUrl) {
+        throwError(
+          'Could not get directivesByUrl. ' +
+          'Are you sure angularFile property in bsInjular options is correct?'
+        );
+      }
+
+      var directivesByName = directivesByUrl[localAngular._scriptUrl];
 
       if (directivesByName) {
-        var directiveList = directivesByName[name];
-
-        if (directiveList) {
-          if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {
-            bsInjular.indexByDirectiveName[name] = 0;
-          }
-          var index = bsInjular.indexByDirectiveName[name]++;
-          if (index < directiveList.length) {
-            var directive = directiveList[index];
-            var newDirective = $injector.invoke(directiveFactory);
-            removeAllProperties(directive);
-            angular.extend(directive, newDirective);
-            return this;
-          }
+        if (angular.isString(name)) {
+          injectDirectives(name, directiveFactory, directivesByName);
         } else {
-          directiveList = directivesByName[name] = [];
+          angular.forEach(name, function(directiveFactory, name) {
+            injectDirectives(name, directiveFactory, directivesByName);
+          });
         }
-
-        // create directive if it does not exists
-        if (!bsInjular.$compileProvider) {
-          throwError(
-            'Could not get $compileProvider. ' +
-            'Are you sure the moduleName in the bsInjular options is correct?'
-          );
-        }
-        bsInjular.$compileProvider.directive.apply(bsInjular.$compileProvider, arguments);
-        var directives = $injector.get(name + DIRECTIVE_SUFFIX);
-        directiveList.push(directives[directives.length - 1]);
       } else {
         console.warn('[BS-Injular] No directives for url: ' + localAngular._scriptUrl);
       }
 
       return this;
     }
+
+    function injectDirectives(name, directiveFactory, directivesByName) {
+      var directiveList = directivesByName[name];
+
+      if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {
+        bsInjular.indexByDirectiveName[name] = 0;
+      }
+      var index = bsInjular.indexByDirectiveName[name]++;
+
+      if (directiveList) {
+        if (index < directiveList.length) {
+          var directive = directiveList[index];
+          var newDirective = instantiateDirective($injector, directiveFactory, name);
+          removeReplaceableDirectiveProperties(directive);
+          angular.extend(directive, newDirective);
+          return this;
+        }
+      } else {
+        directiveList = directivesByName[name] = [];
+      }
+
+      // create directive if it does not exists
+      if (!bsInjular.$compileProvider) {
+        throwError(
+          'Could not get $compileProvider. ' +
+          'Are you sure the moduleName in the bsInjular options is correct?'
+        );
+      }
+      bsInjular.$compileProvider.directive.apply(bsInjular.$compileProvider, arguments);
+      var directives = $injector.get(name + DIRECTIVE_SUFFIX);
+      directiveList.push(directives[directives.length - 1]);
+      bsInjular.indexByDirectiveName[name]++;
+    }
   }
 
 
-  function removeAllProperties(object) {
-    for (var key in object) {
-      delete object[key];
+  function instantiateDirective($injector, directiveFactory, name) {
+    // Code from $compileProvider.directive
+    var directive = $injector.invoke(directiveFactory);
+    if (angular.isFunction(directive)) {
+      directive = { compile: valueFn(directive) };
+    } else if (!directive.compile && directive.link) {
+      directive.compile = valueFn(directive.link);
     }
+    directive.priority = directive.priority || 0;
+    directive.name = directive.name || name;
+    directive.require = directive.require || (directive.controller && directive.name);
+    directive.restrict = directive.restrict || 'EA';
+    return directive;
+  }
+
+
+  function removeReplaceableDirectiveProperties(directive) {
+    for (var key in directive) {
+      if (key !== 'index' && key !== '$$moduleName') {
+        delete directive[key];
+      }
+    }
+  }
+
+
+  function valueFn(value) {
+    return function() {
+      return value;
+    };
   }
 
 

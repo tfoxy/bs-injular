@@ -37,7 +37,7 @@ describe('controller changed listener', function() {
     window.___bsInjular___ = {$controllerProvider: $controllerProvider};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
-    angular.bootstrap(element, ['app', provideRouteSpy]);
+    angular.bootstrap(element, ['app', provideRoute]);
 
     listener({
       script: "angular.module('app').controller('fooCtrl', function(){})"
@@ -46,7 +46,7 @@ describe('controller changed listener', function() {
     expect($controllerProvider.register).to.have.callCount(1);
     expect($controllerProvider.register).to.have.been.calledWith('fooCtrl');
 
-    function provideRouteSpy($provide) {
+    function provideRoute($provide) {
       $provide.constant('$route', {reload: angular.noop});
     }
   });

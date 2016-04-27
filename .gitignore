@@ -24,3 +24,9 @@ node_modules/
 ## File-based project format:
 *.ipr
 *.iws
+
+
+# Coverage
+coverage-server/
+coverage-client/
+coverage-merged/

@@ -1,13 +1,9 @@
 {
-  "extends": "eslint:recommended",
-  "rules": {
-    "block-scoped-var": "error",
-    "curly": "error",
-    "eqeqeq": ["error", "smart"],
-    "indent": ["error", 2],
-    "linebreak-style": ["error", "unix"],
-    "no-empty-function": "error",
-    "no-implicit-globals": "error",
-    "semi": ["error", "always"]
+  "extends": "./.eslintrc-common.json",
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "env": {
+    "node": true
   }
 }

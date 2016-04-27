@@ -322,10 +322,10 @@
 
       if (directivesByName) {
         if (angular.isString(name)) {
-          injectDirectives(name, directiveFactory, directivesByName);
+          injectDirective(name, directiveFactory, directivesByName);
         } else {
           angular.forEach(name, function(directiveFactory, name) {
-            injectDirectives(name, directiveFactory, directivesByName);
+            injectDirective(name, directiveFactory, directivesByName);
           });
         }
       } else {
@@ -335,7 +335,7 @@
       return this;
     }
 
-    function injectDirectives(name, directiveFactory, directivesByName) {
+    function injectDirective(name, directiveFactory, directivesByName) {
       var directiveList = directivesByName[name];
 
       if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {

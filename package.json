@@ -4,12 +4,11 @@
   "description": "Inject angular templates and controllers without reloading the page",
   "main": "lib/index.js",
   "scripts": {
-    "test": "npm run lint && npm run test:server && npm run test:client",
+    "test": "npm run lint && npm run test:server && npm run test:client && npm run test:merged",
     "lint": "eslint .",
     "test:server": "istanbul cover _mocha --dir coverage-server --report text-summary --report json -x test-server/**/* test-server",
     "test:client": "karma start --single-run",
-    "test:merged": "istanbul report --dir coverage-merged lcov text-summary",
-    "codecov": "cat coverage-merged/lcov.info | codecov"
+    "test:merged": "istanbul report --dir coverage-merged lcov text-summary"
   },
   "repository": {
     "type": "git",

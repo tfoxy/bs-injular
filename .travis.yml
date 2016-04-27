@@ -9,3 +9,5 @@ deploy:
   on:
     tags: true
     repo: tfoxy/bs-injular
+after_success:
+  - bash -f coverage-merged/lcov.info <(curl -s https://codecov.io/bash)

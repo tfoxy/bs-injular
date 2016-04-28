@@ -4,25 +4,20 @@ describe('template changed listener', function() {
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[TEMPLATE_CHANGED_EVENT];
-  var rootElement, warn;
+  var rootElement;
 
   before(function() {
     var body = angular.element(document.body);
     rootElement = angular.element('<div></div>');
     body.append(rootElement);
-
-    warn = console.warn;
-    console.warn = sinon.spy();
   });
 
   afterEach(function() {
     rootElement.children().remove();
-    console.warn.reset();
   });
 
   after(function() {
     rootElement.remove();
-    console.warn = warn;
   });
 
 
@@ -49,7 +44,6 @@ describe('template changed listener', function() {
     });
     expect(element.text()).to.equal('BAR');
     expect(element.children()).to.have.length(1);
-    expect(console.warn).to.have.callCount(0);
   });
 
 
@@ -76,7 +70,6 @@ describe('template changed listener', function() {
     });
     expect(element.text()).to.equal('BAR');
     expect(element.children()).to.have.length(1);
-    expect(console.warn).to.have.callCount(0);
   });
 
 
@@ -93,27 +86,26 @@ describe('template changed listener', function() {
     });
 
     it('should print a warning when querySelector is not found', function() {
-      listener({
+      var fn = listener.bind(null, {
         template: '',
         templateUrl: '/app/foo.html'
       });
 
-      expect(console.warn).to.have.callCount(1);
-      expect(console.warn).to.have.been.calledWithMatch('querySelector');
+      expect(fn).to.throw('querySelector');
     });
 
   });
 
 
   it('should print a warning when an [ng-app] element is not found', function() {
-    listener({
+    var fn = listener.bind(null, {
       template: '',
       templateUrl: '/app/foo.html'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('[ng-app]');
-    expect(console.warn).to.not.have.been.calledWithMatch('$injector');
+    expect(fn).to.throw(Error)
+    .that.has.property('message')
+    .that.contains('[ng-app]').and.not.contains('$injector');
   });
 
 
@@ -121,13 +113,12 @@ describe('template changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
 
-    listener({
+    var fn = listener.bind(null, {
       template: '',
       templateUrl: '/app/foo.html'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('$injector');
+    expect(fn).to.throw('$injector');
   });
 
 
@@ -136,13 +127,12 @@ describe('template changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
 
-    listener({
+    var fn = listener.bind(null, {
       template: '',
       templateUrl: '/app/foo.html'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('templateCache');
+    expect(fn).to.throw('templateCache');
   });
 
 
@@ -160,13 +150,12 @@ describe('template changed listener', function() {
     angular.bootstrap(element);
     element.injector().get('$templateCache').put('/app/foo.html', template);
 
-    listener({
+    var fn = listener.bind(null, {
       template: '',
       templateUrl: '/app/foo.html'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('bs-injular-end');
+    expect(fn).to.throw('bs-injular-end');
   });
 
 });

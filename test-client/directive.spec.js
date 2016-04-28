@@ -154,13 +154,12 @@ describe('directive changed listener', function() {
 
 
   it('should give a warning when directivesByUrl is not found', function() {
-    console.warn = sinon.spy();
     window.___bsInjular___ = {};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
 
-    listener({
+    var fn = listener.bind(null, {
       scriptUrl: '/app/foo.directive.js',
       script: [
         "angular.module('app')",
@@ -168,8 +167,7 @@ describe('directive changed listener', function() {
       ].join('')
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('directivesByUrl');
+    expect(fn).to.throw('directivesByUrl');
   });
 
 

@@ -2,38 +2,42 @@
 (function (bs) {
   'use strict';
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
-  var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
+  var SCRIPT_CHANGED_EVENT = 'injularScript:changed';
   var DIRECTIVE_SUFFIX = 'Directive';
 
   var sockets = bs.socket;
 
   sockets.on(TEMPLATE_CHANGED_EVENT, templateChangedListener);
-  sockets.on(CONTROLLER_CHANGED_EVENT, scriptChangedListener);
+  sockets.on(SCRIPT_CHANGED_EVENT, scriptChangedListener);
 
 
   function templateChangedListener(data) {
-    try {
-      tryTemplateChangedListener(data);
-    } catch (err) {
-      errorHandler(err);
+    var $injector = getInjector();
+
+    var $templateCache = $injector.get('$templateCache');
+    var templateUrl = data.templateUrl;
+    var template = data.template;
+    replaceTemplateCache($templateCache, templateUrl, template);
+
+    if (data.reloadRoute) {
+      reloadRoute($injector);
+    } else {
+      var $compile = $injector.get('$compile');
+      replaceTemplateInDom($compile, templateUrl, template);
     }
   }
 
 
   function scriptChangedListener(data) {
-    try {
-      var $injector = getInjector();
+    var $injector = getInjector();
 
-      var localAngular = getLocalAngular($injector);
-      localAngular._scriptUrl = data.scriptUrl;
-      var jsInjector = new Function('angular', data.script);
-      jsInjector(localAngular);
-      removeDeletedDirectives($injector, data.scriptUrl);
+    var localAngular = getLocalAngular($injector);
+    localAngular._scriptUrl = data.scriptUrl;
+    var jsInjector = new Function('angular', data.script);
+    jsInjector(localAngular);
+    removeDeletedDirectives($injector, data.scriptUrl);
 
-      reloadRoute($injector);
-    } catch (err) {
-      errorHandler(err);
-    }
+    reloadRoute($injector);
   }
 
 
@@ -58,6 +62,9 @@
     var bsInjular = getBsInjular();
     var indexByDirectiveName = bsInjular.indexByDirectiveName;
     var directivesByUrl = bsInjular.directivesByUrl;
+    if (!directivesByUrl) {
+      return;
+    }
     var directivesByName = directivesByUrl[scriptUrl];
 
     if (directivesByName) {
@@ -104,23 +111,6 @@
         'Cannot reload route because ' +
         'neither $state nor $route are present in $injector'
       );
-    }
-  }
-
-
-  function tryTemplateChangedListener(data) {
-    var $injector = getInjector();
-
-    var $templateCache = $injector.get('$templateCache');
-    var templateUrl = data.templateUrl;
-    var template = data.template;
-    replaceTemplateCache($templateCache, templateUrl, template);
-
-    if (data.reloadRoute) {
-      reloadRoute($injector);
-    } else {
-      var $compile = $injector.get('$compile');
-      replaceTemplateInDom($compile, templateUrl, template);
     }
   }
 
@@ -295,7 +285,18 @@
       app = angular.copy(app);
       app.controller = injularControllerRecipe;
       app.directive = injularDirectiveRecipe;
+      app.config = returnSelf;
+      app.run = returnSelf;
+      app.constant = returnSelf;
+      app.value = returnSelf;
+      app.provider = returnSelf;
+      app.factory = returnSelf;
+      app.service = returnSelf;
       return app;
+    }
+
+    function returnSelf() {
+      return this;
     }
 
     function injularControllerRecipe() {
@@ -402,16 +403,7 @@
   }
 
 
-  function errorHandler(err) {
-    if (typeof err === 'string') {
-      console.warn(err);
-    } else {
-      throw err;
-    }
-  }
-
-
   function throwError(msg) {
-    throw '[BS-Injular] ' + msg;
+    throw new Error('[BS-Injular] ' + msg);
   }
 })(window.___browserSync___);

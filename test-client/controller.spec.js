@@ -40,7 +40,8 @@ describe('controller changed listener', function() {
     angular.bootstrap(element, ['app', provideRoute]);
 
     listener({
-      script: "angular.module('app').controller('fooCtrl', function(){})"
+      script: "angular.module('app').controller('fooCtrl', function(){})",
+      scriptUrl: 'app/foo.controller.js'
     });
 
     expect($controllerProvider.register).to.have.callCount(1);
@@ -61,7 +62,8 @@ describe('controller changed listener', function() {
     angular.bootstrap(element, ['app', provideRouteSpy]);
 
     listener({
-      script: ''
+      script: '',
+      scriptUrl: 'app/foo.controller.js'
     });
 
     expect($route.reload).to.have.callCount(1);
@@ -81,7 +83,8 @@ describe('controller changed listener', function() {
     angular.bootstrap(element, ['app', provideStateSpy]);
 
     listener({
-      script: ''
+      script: '',
+      scriptUrl: 'app/foo.controller.js'
     });
 
     expect($state.reload).to.have.callCount(1);
@@ -92,17 +95,17 @@ describe('controller changed listener', function() {
   });
 
 
-  it('should print a warning when window.___bsInjular___ is not found', function() {
+  it('should throw an error when window.___bsInjular___ is not found', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
-    console.warn = sinon.spy();
-    listener({
-      script: ''
+    
+    var fn = listener.bind(null, {
+      script: '',
+      scriptUrl: 'app/foo.controller.js'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('window.___bsInjular___');
+    expect(fn).to.throw('window.___bsInjular___');
   });
 
 
@@ -111,13 +114,13 @@ describe('controller changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
     window.___bsInjular___ = {};
-    console.warn = sinon.spy();
-    listener({
-      script: "angular.module('app').controller('fooCtrl', function(){})"
+
+    var fn = listener.bind(null, {
+      script: "angular.module('app').controller('fooCtrl', function(){})",
+      scriptUrl: 'app/foo.controller.js'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('$controllerProvider');
+    expect(fn).to.throw('$controllerProvider');
   });
 
 
@@ -138,13 +141,13 @@ describe('controller changed listener', function() {
       angular.bootstrap(element);
       delete window.angular;
       window.___bsInjular___ = {$controllerProvider: {}};
-      console.warn = sinon.spy();
-      listener({
-        script: ''
+      
+      var fn = listener.bind(null, {
+        script: '',
+        scriptUrl: 'app/foo.controller.js'
       });
 
-      expect(console.warn).to.have.callCount(1);
-      expect(console.warn).to.have.been.calledWithMatch('window.angular');
+      expect(fn).to.throw('window.angular');
     });
 
   });
@@ -154,15 +157,13 @@ describe('controller changed listener', function() {
     window.___bsInjular___ = {$controllerProvider: {}};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
-    console.warn = sinon.spy();
 
-    listener({
-      template: '',
-      templateUrl: '/app/foo.html'
+    var fn = listener.bind(null, {
+      script: '',
+      scriptUrl: 'app/foo.controller.js'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('$injector');
+    expect(fn).to.throw('$injector');
   });
 
 
@@ -171,16 +172,15 @@ describe('controller changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
-    console.warn = sinon.spy();
 
-    listener({
-      template: '',
-      templateUrl: '/app/foo.html'
+    var fn = listener.bind(null, {
+      script: '',
+      scriptUrl: 'app/foo.controller.js'
     });
 
-    expect(console.warn).to.have.callCount(1);
-    expect(console.warn).to.have.been.calledWithMatch('$route');
-    expect(console.warn).to.have.been.calledWithMatch('$state');
+    expect(fn).to.throw(Error)
+    .that.has.property('message')
+    .that.contains('$state').and.contains('$route');
   });
 
 });

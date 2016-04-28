@@ -1,10 +1,10 @@
-# Injular
+# Injular <sub><sup>(AngularJS 1.x hot reloading)</sup></sub>
 
 [![npm version](http://img.shields.io/npm/v/bs-injular.svg)](https://npmjs.org/package/bs-injular)
 [![build status](https://img.shields.io/travis/tfoxy/bs-injular.svg)](https://travis-ci.org/tfoxy/bs-injular)
 [![codecov](https://codecov.io/gh/tfoxy/bs-injular/branch/master/graph/badge.svg)](https://codecov.io/gh/tfoxy/bs-injular)
 
-> Inject angular templates and controllers without reloading the page
+> Inject angular templates, controllers and directives without reloading the page
 
 This is a plugin for the awesome [BrowserSync](https://browsersync.io).
 
@@ -25,7 +25,7 @@ npm install && bower install
 gulp serve
 ```
 
-Modify the `*.html` and `*.controller.js` files inside `src/app`
+Modify the `*.html`, `*.controller.js` and `*.directive.js` files inside `src/app`
 and watch the changes instantly.
 
 **[Click here to watch GIF of demo](https://raw.githubusercontent.com/tfoxy/bs-injular-demo/master/bs-injular.gif)**
@@ -57,6 +57,8 @@ var bsInjular = require('bs-injular');
 browserSync.use(bsInjular, {
   templates: '**/app/**/*.html',
   controllers: '**/app/**/*.controller.js',
+  directives: '**/app/**/*.directive.js',
+  angularFile: '/bower_components/angular/angular.js',
   moduleFile: '**/app/index.module.js',
   moduleName: 'fooApp'
 });
@@ -66,7 +68,7 @@ browserSync({
 });
 ```
 
-This supports template and controller injection.
+This supports template, controller and directive injection.
 
 
 ## Configuration
@@ -91,10 +93,25 @@ If you want to inject controllers, you must provide the following properties:
 ```
 
 The module file and module name are necessary in order to get the `$controllerProvider`
-in the config phase and inject the controllers later.
+in the config phase so that the controllers can be injected later.
+
+If you want to inject directives, you must provide the following properties:
+
+```js
+{
+  directives: '**/app/**/*.directive.js',
+  angularFile: '/bower_components/angular/angular.js',
+  moduleFile: '**/app/index.module.js',
+  moduleName: 'fooApp'
+}
+```
+
+The module file and module name are necessary in order to get the `$compileProvider`
+in the config phase so that the directives can be injected later.  
+The angular file is necessary to keep track of the directives present in a file.
 
 **WARNING:** The controller files must retrieve the module using `angular.module()`
-and only use the `controller` recipe.
+and only use the `controller` recipe. The same applies to directives.
 
 ```js
 angular
@@ -106,7 +123,7 @@ function Controller() {
 }
 ```
 
-If there is a directive, a config block or any other angular recipe, it may work unexpectedly.
+If there is any other angular recipe, it will be ignored.
 
 
 Also, when using the BrowserSync API, you must only reload the controller file when there is a change.
@@ -123,10 +140,8 @@ See:
 
 * Support for javascript bundlers: webpack, browserify, rollup<i></i>.js
 
-* Support for inline templates and controllers
-
-* Show the file and line number when an error is thrown in an injected controller.  
-  Currently, the controller is evaluated using `Function`.
+* Show the file and line number when an error is thrown in an injected script.  
+  Currently, the script is evaluated using `Function`.
 
 
 ## Resources

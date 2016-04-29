@@ -4,6 +4,7 @@
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
   var SCRIPT_CHANGED_EVENT = 'injularScript:changed';
   var DIRECTIVE_SUFFIX = 'Directive';
+  var CNTRL_REG = /^(\S+)(\s+as\s+([\w$]+))?$/;
 
   var sockets = bs.socket;
 
@@ -285,6 +286,13 @@
       app = angular.copy(app);
       app.controller = injularControllerRecipe;
       app.directive = injularDirectiveRecipe;
+      if ('component' in app) {
+        if ('$compileProvider' in bsInjular) {
+          app.component = getCompileProvider().component.bind(app);
+        } else {
+          app.component = getCompileProvider;
+        }
+      }
       app.config = returnSelf;
       app.run = returnSelf;
       app.constant = returnSelf;
@@ -357,16 +365,23 @@
       }
 
       // create directive if it does not exists
-      if (!bsInjular.$compileProvider) {
+
+      var $compileProvider = getCompileProvider();
+      $compileProvider.directive(name, directiveFactory);
+      var directives = $injector.get(name + DIRECTIVE_SUFFIX);
+      directiveList.push(directives[directives.length - 1]);
+      bsInjular.indexByDirectiveName[name]++;
+    }
+
+    function getCompileProvider() {
+      var $compileProvider = bsInjular.$compileProvider;
+      if (!$compileProvider) {
         throwError(
           'Could not get $compileProvider. ' +
           'Are you sure the moduleName in the bsInjular options is correct?'
         );
       }
-      bsInjular.$compileProvider.directive.apply(bsInjular.$compileProvider, arguments);
-      var directives = $injector.get(name + DIRECTIVE_SUFFIX);
-      directiveList.push(directives[directives.length - 1]);
-      bsInjular.indexByDirectiveName[name]++;
+      return $compileProvider;
     }
   }
 

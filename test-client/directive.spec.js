@@ -444,4 +444,35 @@ describe('directive changed listener', function() {
     }
   });
 
+
+  it('should handle component recipe', function() {
+    var fooComponent = {
+      template: 'foo'
+    };
+    window.___bsInjular___ = {};
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provide]);
+    var $injector = element.injector();
+    var fooDirectives = $injector.get('fooDirective').slice(); // slice for copy
+    window.___bsInjular___.directivesByUrl = {'/app/foo.component.js': {foo: fooDirectives}};
+
+    listener({
+      scriptUrl: '/app/foo.component.js',
+      script: [
+        "angular.module('app')",
+        ".component('foo', {template: 'bar'})"
+      ].join('')
+    });
+
+    expect(fooDirectives[0]).to.have.property('template', 'bar');
+    expect(fooDirectives[0]).to.have.property('controller');
+
+    function provide($provide, $compileProvider) {
+      provideRoute($provide);
+      $compileProvider.directive('foo', valueFn(fooComponent));
+      window.___bsInjular___.$compileProvider = $compileProvider;
+    }
+  });
+
 });

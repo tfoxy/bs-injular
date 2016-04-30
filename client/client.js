@@ -4,7 +4,6 @@
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
   var SCRIPT_CHANGED_EVENT = 'injularScript:changed';
   var DIRECTIVE_SUFFIX = 'Directive';
-  var CNTRL_REG = /^(\S+)(\s+as\s+([\w$]+))?$/;
 
   var sockets = bs.socket;
 

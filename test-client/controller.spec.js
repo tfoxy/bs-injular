@@ -31,6 +31,10 @@ describe('controller changed listener', function() {
     throw new Error('Warning printed: ' + msg);
   }
 
+  function provideRoute($provide) {
+    $provide.constant('$route', {reload: angular.noop});
+  }
+
 
   it('should call $controllerProvider.register when receiving an angular.controller file', function() {
     var $controllerProvider = {register: sinon.spy()};
@@ -46,9 +50,29 @@ describe('controller changed listener', function() {
 
     expect($controllerProvider.register).to.have.callCount(1);
     expect($controllerProvider.register).to.have.been.calledWith('fooCtrl');
+  });
 
-    function provideRoute($provide) {
-      $provide.constant('$route', {reload: angular.noop});
+
+  it('should change the controller received by $controller service', function() {
+    window.___bsInjular___ = {};
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provide]);
+    var $injector = element.injector();
+    var $controller = $injector.get('$controller');
+    expect($controller('fooCtrl')).to.have.property('foo', 'foo');
+
+    listener({
+      script: "angular.module('app').controller('fooCtrl', function(){this.foo = 'bar';})",
+      scriptUrl: 'app/foo.controller.js'
+    });
+
+    expect($controller('fooCtrl')).to.have.property('foo', 'bar');
+
+    function provide($provide, $controllerProvider) {
+      provideRoute($provide);
+      $controllerProvider.register('fooCtrl', function(){this.foo = 'foo';});
+      window.___bsInjular___.$controllerProvider = $controllerProvider;
     }
   });
 
@@ -109,7 +133,7 @@ describe('controller changed listener', function() {
   });
 
 
-  it('should print a warning when ___bsInjular___.$controllerProvider is not found', function() {
+  it('should throw an error when ___bsInjular___.$controllerProvider is not found', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
@@ -135,7 +159,7 @@ describe('controller changed listener', function() {
       window.angular = angular;
     });
 
-    it('should print a warning when window.angular is not found', function() {
+    it('should throw an error when window.angular is not found', function() {
       var element = angular.element('<div ng-app="app"></div>');
       rootElement.append(element);
       angular.bootstrap(element);
@@ -153,7 +177,7 @@ describe('controller changed listener', function() {
   });
 
 
-  it('should give a warning when $injector is not found', function() {
+  it('should throw an error when $injector is not found', function() {
     window.___bsInjular___ = {$controllerProvider: {}};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
@@ -167,7 +191,7 @@ describe('controller changed listener', function() {
   });
 
 
-  it('should give a warning when $route nor $state is found', function() {
+  it('should throw an error when $route nor $state is found', function() {
     window.___bsInjular___ = {$controllerProvider: {}};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);

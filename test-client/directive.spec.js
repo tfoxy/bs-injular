@@ -153,7 +153,7 @@ describe('directive changed listener', function() {
   });
 
 
-  it('should give a warning when directivesByUrl is not found', function() {
+  it('should throw an error when directivesByUrl is not found', function() {
     window.___bsInjular___ = {};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);

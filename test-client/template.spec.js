@@ -74,6 +74,46 @@ describe('template changed listener', function() {
 
 
   describe('', function() {
+    var createTreeWalker;
+
+    before(function() {
+      createTreeWalker = document.createTreeWalker;
+      document.createTreeWalker = undefined;
+    });
+
+    after(function() {
+      document.createTreeWalker = createTreeWalker;
+    });
+
+    it('should work even when document.createTreeWalker is not found', function() {
+      var template = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<div>FOO</div>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
+      var element = angular.element([
+        '<div ng-app="app">',
+        template,
+        '</div>'
+      ].join(''));
+      rootElement.append(element);
+      expect(element.text()).to.equal('FOO');
+
+      angular.bootstrap(element);
+      element.injector().get('$templateCache').put('/app/foo.html', template);
+
+      listener({
+        template: '<span>BAR</span>',
+        templateUrl: '/app/foo.html'
+      });
+      expect(element.text()).to.equal('BAR');
+      expect(element.children()).to.have.length(1);
+    });
+
+  });
+
+
+  describe('', function() {
     var querySelector;
 
     before(function() {

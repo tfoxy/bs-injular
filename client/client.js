@@ -292,6 +292,7 @@
           app.component = getCompileProvider;
         }
       }
+      app.filter = injularFilterRecipe;
       app.config = returnSelf;
       app.run = returnSelf;
       app.constant = returnSelf;
@@ -314,6 +315,30 @@
         );
       }
       bsInjular.$controllerProvider.register.apply(bsInjular.$controllerProvider, arguments);
+      return this;
+    }
+
+    function injularFilterRecipe(name, filterFactory) {
+      var filtersCache = bsInjular.filtersCache;
+      if (!filtersCache) {
+        throwError(
+          'Could not get filtersCache. ' +
+          'Are you sure angularFile property in bsInjular options is correct?'
+        );
+      }
+
+      if (bsInjular.filtersCache.hasOwnProperty(name)) {
+        bsInjular.filtersCache[name] = $injector.invoke(filterFactory);
+      } else {
+        var $filterProvider = bsInjular.$filterProvider;
+        if (!$filterProvider) {
+          throwError(
+            'Could not get $filterProvider. ' +
+            'Are you sure the moduleName in the bsInjular options is correct?'
+          );
+        }
+        $filterProvider.register.apply($filterProvider, arguments);
+      }
       return this;
     }
 

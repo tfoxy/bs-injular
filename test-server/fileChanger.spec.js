@@ -11,6 +11,10 @@ const url = require('url');
 const noop = ()=>{};
 /* eslint-enable no-empty-function */
 
+function isString(s) {
+  return typeof s === 'string';
+}
+
 
 describe('fileChanger', () => {
 
@@ -70,17 +74,17 @@ describe('fileChanger', () => {
 
   });
 
-  describe('.appendAngularDirectivePatch', () => {
+  describe('.appendAngularModulePatch', () => {
 
     it('should return a string that starts with the string received', () => {
       let content = `(function(){window.angular={}})()`;
-      let newContent = fileChanger.appendAngularDirectivePatch(content);
+      let newContent = fileChanger.appendAngularModulePatch(content);
       expect(newContent).to.startWith(content);
     });
     
   });
 
-  describe('_appendAngularDirectivePatchFunction', () => {
+  describe('_appendAngularModulePatchFunction', () => {
 
     it('should add directivesByUrl to bsInjular when evaluated', () => {
       let window = {};
@@ -88,10 +92,23 @@ describe('fileChanger', () => {
         module: noop
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
 
       expect(window).to.have.deep.property(
         '___bsInjular___.directivesByUrl'
+      ).that.deep.equals({});
+    });
+
+    it('should add filtersCache to bsInjular when evaluated', () => {
+      let window = {};
+      let angular = {
+        module: noop
+      };
+
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+
+      expect(window).to.have.deep.property(
+        '___bsInjular___.filtersCache'
       ).that.deep.equals({});
     });
 
@@ -103,7 +120,7 @@ describe('fileChanger', () => {
         module
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
 
       expect(angular.module).to.not.equal(module);
     });
@@ -117,7 +134,7 @@ describe('fileChanger', () => {
         module: moduleFn
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
       angular.module();
 
       expect(moduleFn).to.have.callCount(1);
@@ -135,10 +152,44 @@ describe('fileChanger', () => {
         module: moduleFn
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
-      angular.module();
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []);
 
       expect(module.directive).to.not.equal(directive);
+    });
+
+    it('should replace module.filter when evaluated and angular.module is called', () => {
+      let window = {};
+      let filter = noop;
+      let module = {
+        filter
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn
+      };
+
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      angular.module('app', []);
+
+      expect(module.filter).to.not.equal(filter);
+    });
+
+    it('should not replace module.filter when angular.module is called as a getter', () => {
+      let window = {};
+      let filter = noop;
+      let module = {
+        filter
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn
+      };
+
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      angular.module('app');
+
+      expect(module.filter).to.equal(filter);
     });
 
     it('should call original module.directive with an array factory when new module.directive is called', () => {
@@ -153,11 +204,11 @@ describe('fileChanger', () => {
         module: moduleFn,
         injector: {$$annotate: () => []},
         isArray: Array.isArray,
-        isString: (s) => {return typeof s === 'string';}
+        isString
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
-      angular.module().directive('foo', noop);
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []).directive('foo', noop);
 
       expect(directive).to.have.callCount(1);
       expect(directive).to.have.been.calledWith('foo');
@@ -176,11 +227,11 @@ describe('fileChanger', () => {
         module: moduleFn,
         injector: {$$annotate: () => []},
         isArray: Array.isArray,
-        isString: (s) => typeof s === 'string'
+        isString
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
-      angular.module().directive('foo', noop);
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []).directive('foo', noop);
 
       expect(directive).to.have.callCount(1);
       expect(directive).to.have.been.calledWith('foo');
@@ -201,11 +252,11 @@ describe('fileChanger', () => {
         module: moduleFn,
         injector: {$$annotate: () => []},
         isArray: Array.isArray,
-        isString: (s) => {return typeof s === 'string';}
+        isString
       };
 
-      fileChanger._appendAngularDirectivePatchFunction(angular, window, document);
-      angular.module().directive('foo', () => 'foobar');
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []).directive('foo', () => 'foobar');
       let directive = moduleDirectiveFactory();
 
       expect(directive).to.equal('foobar');
@@ -226,6 +277,50 @@ describe('fileChanger', () => {
           }
         };
       }
+    });
+
+    it('should patch angular.filter with another function that calls the original angular.filter', () => {
+      let filterRecipe = sinon.spy();
+      let window = {};
+      let module = {
+        filter: filterRecipe
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn,
+        isString
+      };
+      let filter = () => 'foo';
+      
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      angular.module('app', []).filter('foo', () => filter);
+
+      expect(filterRecipe).to.have.callCount(1);
+    });
+
+    it('should patch the filter factory in order to add the filter to bsInjular.filtersCache', () => {
+      let moduleFilterFactory;
+      let window = {};
+      let module = {
+        filter: (name, filterFactory) => {
+          moduleFilterFactory = filterFactory;
+        }
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn,
+        isString
+      };
+      let filter = () => 'foo';
+      
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      angular.module('app', []).filter('foo', () => filter);
+      moduleFilterFactory({invoke: fn => fn()});
+
+      expect(window).to.have.deep.property(
+        '___bsInjular___.filtersCache.foo'
+      ).that.is.a('function');
+      expect(window.___bsInjular___.filtersCache.foo()).to.equal('foo');
     });
 
   });

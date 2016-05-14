@@ -6,6 +6,7 @@ const EventEmitter = require('events');
 const immutable = require('immutable');
 const sinon = require('sinon');
 const mockFs = require('mock-fs');
+const createLogger = require('./createLogger');
 
 
 describe('listenToFileChange', () => {
@@ -22,14 +23,14 @@ describe('listenToFileChange', () => {
 
   it('should add a file:changed listener', () => {
     expect(bs.emitter.listeners('file:changed')).to.have.length(0);
-    listenToFileChange({}, bs);
+    listenToFileChange({logger: createLogger()}, bs);
     expect(bs.emitter.listeners('file:changed')).to.have.length(1);
   });
 
   it('should set its file:changed listener as the first one', () => {
     let listener = () => {/*noop*/};
     bs.emitter.on('file:changed', listener);
-    listenToFileChange({}, bs);
+    listenToFileChange({logger: createLogger()}, bs);
     expect(bs.emitter.listeners('file:changed')).to.have.length(2);
     expect(bs.emitter.listeners('file:changed')).to.have.property('1', listener);
   });
@@ -50,9 +51,7 @@ describe('listenToFileChange', () => {
       };
       config = {
         emitNotify: sinon.spy(),
-        logger: {
-          error: sinon.spy()
-        },
+        logger: createLogger(),
         templates: '/app/**/*.html',
         controllers: '/app/**/*.controller.js',
         moduleFile: '/app/foo.module.js',
@@ -73,7 +72,7 @@ describe('listenToFileChange', () => {
     });
 
     it('should not throw an error when no configuration is given', () => {
-      listenToFileChange({}, bs);
+      listenToFileChange({logger: config.logger}, bs);
       bs.emitter.emit('file:changed', templateEvent);
     });
 

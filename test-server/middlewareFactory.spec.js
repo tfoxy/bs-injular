@@ -51,7 +51,7 @@ describe('middlewareFactory', () => {
 
     it('should tamper the module file when matching the pattern', () => {
       config.moduleFile = '/app/index.module.js';
-      config.moduleName = 'fooApp';
+      config.ngApp = 'fooApp';
       let middleware = middlewareFactory(config);
       let req = new Request('/app/index.module.js');
       let res = new Response();
@@ -80,7 +80,7 @@ describe('middlewareFactory', () => {
 
     it('should not log an error when module name is given', () => {
       config.moduleFile = '/app/index.module.js';
-      config.moduleName = 'fooApp';
+      config.ngApp = 'fooApp';
       let middleware = middlewareFactory(config);
       let req = new Request('/app/index.module.js');
       let res = new Response();

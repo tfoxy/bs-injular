@@ -43,11 +43,13 @@ describe('listenToFileChange', () => {
     beforeEach(() => {
       templateEvent = {
         path: '/home/user/my-repo/app/foo.html',
-        event: 'file:changed'
+        event: 'change',
+        namespace: 'core'
       };
       controllerEvent = {
         path: '/home/user/my-repo/app/foo.controller.js',
-        event: 'file:changed'
+        event: 'change',
+        namespace: 'core'
       };
       config = {
         emitNotify: sinon.spy(),
@@ -55,7 +57,7 @@ describe('listenToFileChange', () => {
         templates: '/app/**/*.html',
         controllers: '/app/**/*.controller.js',
         moduleFile: '/app/foo.module.js',
-        moduleName: 'app',
+        ngApp: 'app',
         matchedModuleFile: '/app/foo.module.js'
       };
 
@@ -107,7 +109,7 @@ describe('listenToFileChange', () => {
       delete config.matchedModuleFile;
       listenToFileChange(config, bs);
       bs.emitter.emit('file:changed', controllerEvent);
-      expect(controllerEvent.event).to.equal('file:changed');
+      expect(controllerEvent.event).to.equal('change');
     });
 
   });

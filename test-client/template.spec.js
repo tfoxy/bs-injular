@@ -198,4 +198,79 @@ describe('template changed listener', function() {
     expect(fn).to.throw('bs-injular-end');
   });
 
+
+  it('should preserve the form of the scope', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<form name="fooForm">FOO</form>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      template,
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    expect(element.find('form').scope())
+    .to.have.deep.property('fooForm.$error');
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.find('form').scope())
+    .to.have.property('fooForm')
+    .that.is.an('object');
+  });
+
+
+  it('should preserve a parent controller binding and replace the template binding', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<b ng-controller="Bar"></b>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<i ng-controller="Foo">',
+      template,
+      '</i>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', registerControllers]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    expect(element.find('i').scope()).to.have.property('foo', 'foo1');
+    expect(element.find('b').scope()).to.have.property('bar', 'bar1');
+    expect(element.find('b').scope()).to.have.property('fooAux', 'foo1');
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.find('i').scope()).to.have.property('foo', 'foo1');
+    expect(element.find('b').scope()).to.have.property('bar', 'bar2');
+    expect(element.find('b').scope()).to.have.property('fooAux', 'foo1');
+
+
+    function registerControllers($controllerProvider) {
+      var i = 0, j = 0;
+      $controllerProvider.register('Foo', function($scope) {
+        i++;
+        $scope.foo = 'foo' + i;
+      });
+      $controllerProvider.register('Bar', function($scope) {
+        j++;
+        $scope.bar = 'bar' + j;
+        $scope.fooAux = $scope.foo;
+      });
+    }
+  });
+
 });

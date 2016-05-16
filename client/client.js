@@ -47,7 +47,7 @@
     if (!bsInjular) {
       throwError(
         'Could not get window.___bsInjular___ . ' +
-        'Are you sure the moduleName in the bsInjular options is correct?'
+        'Are you sure ngApp property in bsInjular options is correct?'
       );
     }
 
@@ -188,10 +188,11 @@
     while ((node = tw.nextNode())) {
       var templateNodes = getTemplateNodes(node, templateUrl);
       var templateElements = angular.element(templateNodes);
-      var scope = templateElements.scope();
+      var scope = templateElements.parent().scope().$new();
+      var templateFunction = $compile(template);
 
       scope.$apply(function() {
-        var newTemplateElements = $compile(template)(scope);
+        var newTemplateElements = templateFunction(scope);
         templateElements.replaceWith(newTemplateElements);
       });
     }
@@ -311,7 +312,7 @@
       if (!bsInjular.$controllerProvider) {
         throwError(
           'Could not get $controllerProvider. ' +
-          'Are you sure the moduleName in the bsInjular options is correct?'
+          'Are you sure ngApp property in bsInjular options is correct?'
         );
       }
       bsInjular.$controllerProvider.register.apply(bsInjular.$controllerProvider, arguments);
@@ -334,7 +335,7 @@
         if (!$filterProvider) {
           throwError(
             'Could not get $filterProvider. ' +
-            'Are you sure the moduleName in the bsInjular options is correct?'
+            'Are you sure ngApp property in bsInjular options is correct?'
           );
         }
         $filterProvider.register.apply($filterProvider, arguments);
@@ -402,7 +403,7 @@
       if (!$compileProvider) {
         throwError(
           'Could not get $compileProvider. ' +
-          'Are you sure the moduleName in the bsInjular options is correct?'
+          'Are you sure ngApp property in the bsInjular options is correct?'
         );
       }
       return $compileProvider;

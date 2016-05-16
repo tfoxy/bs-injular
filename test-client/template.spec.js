@@ -73,7 +73,7 @@ describe('template changed listener', function() {
   });
 
 
-  describe('', function() {
+  describe('without document.createTreeWalker', function() {
     var createTreeWalker;
 
     before(function() {
@@ -85,7 +85,7 @@ describe('template changed listener', function() {
       document.createTreeWalker = createTreeWalker;
     });
 
-    it('should work even when document.createTreeWalker is not found', function() {
+    it('should work', function() {
       var template = [
         '<!--bs-injular-start /app/foo.html-->',
         '<div>FOO</div>',
@@ -108,6 +108,36 @@ describe('template changed listener', function() {
       });
       expect(element.text()).to.equal('BAR');
       expect(element.children()).to.have.length(1);
+    });
+
+    it('should work on nested elements', function() {
+      var template = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<div>FOO</div>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
+      var element = angular.element([
+        '<div ng-app="app">',
+        '<span>1',
+        '<span>2</span>',
+        template,
+        '<span>3</span>',
+        '4</span>',
+        '</div>'
+      ].join(''));
+      rootElement.append(element);
+      expect(element.text()).to.equal('12FOO34');
+
+      angular.bootstrap(element);
+      element.injector().get('$templateCache').put('/app/foo.html', template);
+
+      listener({
+        template: '<span>BAR</span>',
+        templateUrl: '/app/foo.html'
+      });
+      expect(element.text()).to.equal('12BAR34');
+      expect(element.children()).to.have.length(1);
+      expect(element.children().children()).to.have.length(3);
     });
 
   });

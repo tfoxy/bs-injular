@@ -4,6 +4,8 @@
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
   var SCRIPT_CHANGED_EVENT = 'injularScript:changed';
   var DIRECTIVE_SUFFIX = 'Directive';
+  // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
+  var COMMENT_NODE = 8;
 
   var sockets = bs.socket;
 
@@ -64,11 +66,11 @@
     if (!directivesByUrl) {
       return;
     }
-    var directivesByName = directivesByUrl[scriptUrl];
 
-    if (directivesByName) {
+    if (hasOwnProperty(directivesByUrl, scriptUrl)) {
+      var directivesByName = directivesByUrl[scriptUrl];
       for (var name in directivesByName) {
-        if (directivesByName.hasOwnProperty(name)) {
+        if (hasOwnProperty(directivesByName, name)) {
           var removeStartIndex = indexByDirectiveName[name] || 0;
           var directiveList = directivesByName[name].slice(removeStartIndex);
           if (directiveList.length) {
@@ -205,8 +207,9 @@
     var node = startingNode;
     while ((node = node.nextSibling)) {
       nodes.push(node);
-      if (node.nodeType === Node.COMMENT_NODE &&
-          node.textContent === 'bs-injular-end ' + templateUrl) {
+
+      if (node.nodeType === COMMENT_NODE &&
+          node.data === 'bs-injular-end ' + templateUrl) {
         return nodes;
       }
     }
@@ -234,8 +237,13 @@
 
     function nextNode() {
       while ((node = tw.nextNode())) {
-        if (node.nodeType === Node.COMMENT_NODE &&
-            node.textContent === 'bs-injular-start ' + templateUrl) {
+        if ((
+            node.nodeType === COMMENT_NODE &&
+            node.data === 'bs-injular-start ' + templateUrl
+            ) || (
+            node.nodeType === 1 &&
+            node.getAttribute('bs-injular-start') === templateUrl)
+            ) {
           return node;
         }
       }
@@ -245,16 +253,14 @@
 
 
   function createTreeWalker(root) {
-    var node = {childNodes: [root]};
+    var node = root;
     var stack = [];
     return {
       nextNode: nextNode
     };
 
     function nextNode() {
-      if (!node) {
-        return null;
-      }
+      if (!node) return null;
 
       var childNodes = node.childNodes;
       if (childNodes && childNodes.length) {
@@ -265,10 +271,11 @@
         return node;
       }
 
+      node = node.nextSibling;
+      if (node) return node;
+
       node = stack.pop();
-      if (!node) {
-        return null;
-      }
+      if (!node) return null;
 
       node = node.nextSibling;
       return node;
@@ -330,7 +337,7 @@
         );
       }
 
-      if (bsInjular.filtersCache.hasOwnProperty(name)) {
+      if (hasOwnProperty(bsInjular.filtersCache, name)) {
         bsInjular.filtersCache[name] = $injector.invoke(filterFactory);
       } else {
         var $filterProvider = bsInjular.$filterProvider;
@@ -354,9 +361,9 @@
         );
       }
 
-      var directivesByName = directivesByUrl[localAngular._scriptUrl];
 
-      if (directivesByName) {
+      if (hasOwnProperty(directivesByUrl, localAngular._scriptUrl)) {
+        var directivesByName = directivesByUrl[localAngular._scriptUrl];
         if (angular.isString(name)) {
           injectDirective(name, directiveFactory, directivesByName);
         } else {
@@ -374,12 +381,12 @@
     function injectDirective(name, directiveFactory, directivesByName) {
       var directiveList = directivesByName[name];
 
-      if (!bsInjular.indexByDirectiveName.hasOwnProperty(name)) {
+      if (!hasOwnProperty(bsInjular.indexByDirectiveName, name)) {
         bsInjular.indexByDirectiveName[name] = 0;
       }
       var index = bsInjular.indexByDirectiveName[name]++;
 
-      if (directiveList) {
+      if (hasOwnProperty(directivesByName, name)) {
         if (index < directiveList.length) {
           var directive = directiveList[index];
           var newDirective = instantiateDirective($injector, directiveFactory, name);
@@ -447,5 +454,10 @@
 
   function throwError(msg) {
     throw new Error('[BS-Injular] ' + msg);
+  }
+
+
+  function hasOwnProperty(object, property) {
+    return Object.prototype.hasOwnProperty.call(object, property);
   }
 })(window.___browserSync___);

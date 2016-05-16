@@ -177,6 +177,7 @@ describe('template changed listener', function() {
 
 
   it('should print a warning when a bs-injular-end comment is not found', function() {
+    var routeReload = sinon.spy();
     var template = [
       '<!--bs-injular-start /app/foo.html-->',
       '<div>FOO</div>'
@@ -187,7 +188,7 @@ describe('template changed listener', function() {
       '</div>'
     ].join(''));
     rootElement.append(element);
-    angular.bootstrap(element);
+    angular.bootstrap(element, ['app', provideRoute]);
     element.injector().get('$templateCache').put('/app/foo.html', template);
 
     var fn = listener.bind(null, {
@@ -196,6 +197,12 @@ describe('template changed listener', function() {
     });
 
     expect(fn).to.throw('bs-injular-end');
+    expect(routeReload).to.have.callCount(1);
+
+
+    function provideRoute($provide) {
+      $provide.constant('$route', {reload: routeReload});
+    }
   });
 
 

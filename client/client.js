@@ -22,8 +22,7 @@
     if (data.reloadRoute) {
       reloadRoute($injector);
     } else {
-      var $compile = $injector.get('$compile');
-      replaceTemplateInDom($compile, templateUrl, template);
+      replaceTemplateInDom($injector, templateUrl, template);
     }
   }
 
@@ -181,12 +180,13 @@
   }
 
 
-  function replaceTemplateInDom($compile, templateUrl, template) {
+  function replaceTemplateInDom($injector, templateUrl, template) {
     var tw = createInjularCommentWalker(templateUrl);
+    var $compile = $injector.get('$compile');
 
     var node;
     while ((node = tw.nextNode())) {
-      var templateNodes = getTemplateNodes(node, templateUrl);
+      var templateNodes = getTemplateNodes(node, templateUrl, $injector);
       var templateElements = angular.element(templateNodes);
       var scope = templateElements.parent().scope().$new();
       var templateFunction = $compile(template);
@@ -199,7 +199,7 @@
   }
 
 
-  function getTemplateNodes(startingNode, templateUrl) {
+  function getTemplateNodes(startingNode, templateUrl, $injector) {
     var nodes = [startingNode];
 
     var node = startingNode;
@@ -211,6 +211,8 @@
       }
     }
 
+    console.info('[BS-Injular] bs-injular-end not found. Reloading route.');
+    reloadRoute($injector);
     throwError('Can\'t find ending comment node: bs-injular-end ' + templateUrl);
   }
 

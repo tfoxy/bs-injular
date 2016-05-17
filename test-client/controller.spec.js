@@ -45,7 +45,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: "angular.module('app').controller('fooCtrl', function(){})",
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect($controllerProvider.register).to.have.callCount(1);
@@ -64,7 +65,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: "angular.module('app').controller('fooCtrl', function(){this.foo = 'bar';})",
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect($controller('fooCtrl')).to.have.property('foo', 'bar');
@@ -87,7 +89,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: '',
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect($route.reload).to.have.callCount(1);
@@ -108,7 +111,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: '',
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect($state.reload).to.have.callCount(1);
@@ -126,7 +130,8 @@ describe('controller changed listener', function() {
     
     var fn = listener.bind(null, {
       script: '',
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect(fn).to.throw('window.___bsInjular___');
@@ -141,7 +146,8 @@ describe('controller changed listener', function() {
 
     var fn = listener.bind(null, {
       script: "angular.module('app').controller('fooCtrl', function(){})",
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect(fn).to.throw('$controllerProvider');
@@ -168,7 +174,8 @@ describe('controller changed listener', function() {
       
       var fn = listener.bind(null, {
         script: '',
-        scriptUrl: 'app/foo.controller.js'
+        scriptUrl: 'app/foo.controller.js',
+        recipes: ['controller']
       });
 
       expect(fn).to.throw('window.angular');
@@ -184,7 +191,8 @@ describe('controller changed listener', function() {
 
     var fn = listener.bind(null, {
       script: '',
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect(fn).to.throw('$injector');
@@ -199,7 +207,8 @@ describe('controller changed listener', function() {
 
     var fn = listener.bind(null, {
       script: '',
-      scriptUrl: 'app/foo.controller.js'
+      scriptUrl: 'app/foo.controller.js',
+      recipes: ['controller']
     });
 
     expect(fn).to.throw(Error)

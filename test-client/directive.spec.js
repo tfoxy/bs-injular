@@ -57,7 +57,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, bar: 'foo'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('bar', 'foo');
@@ -97,7 +98,8 @@ describe('directive changed listener', function() {
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar2'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('foo', 'bar');
@@ -139,7 +141,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('foo', 'foo');
@@ -164,7 +167,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, bar: 'foo'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fn).to.throw('directivesByUrl');
@@ -182,7 +186,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     var $injector = element.injector();
@@ -213,7 +218,8 @@ describe('directive changed listener', function() {
 
     listener({
       scriptUrl: '/app/foo.directive.js',
-      script: ''
+      script: '',
+      recipes: ['directive']
     });
 
     var $injector = element.injector();
@@ -251,7 +257,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     var $injector = element.injector();
@@ -282,7 +289,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('index', 0);
@@ -310,7 +318,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return function(){return 'foo'};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('compile').that.is.a('function');
@@ -339,7 +348,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {link: function(){return 'foo'}};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('compile');
@@ -372,7 +382,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive('foo', function(){return {compile: function(){}};})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('priority', 0);
@@ -403,7 +414,8 @@ describe('directive changed listener', function() {
 
     listener({
       scriptUrl: '/app/foo.directive.js',
-      script: ''
+      script: '',
+      recipes: ['directive']
     });
 
     var $injector = element.injector();
@@ -433,7 +445,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".directive({foo: function(){return {compile: function(){}, foo: 'bar'};}})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirective).to.have.property('foo', 'bar');
@@ -462,7 +475,8 @@ describe('directive changed listener', function() {
       script: [
         "angular.module('app')",
         ".component('foo', {template: 'bar'})"
-      ].join('')
+      ].join(''),
+      recipes: ['directive']
     });
 
     expect(fooDirectives[0]).to.have.property('template', 'bar');

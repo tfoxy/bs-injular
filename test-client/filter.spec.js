@@ -64,7 +64,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: "angular.module('app').filter('foo', function(){return function(){}})",
-      scriptUrl: 'app/foo.filter.js'
+      scriptUrl: 'app/foo.filter.js',
+      recipes: ['filter']
     });
 
     expect($filterProvider.register).to.have.callCount(1);
@@ -83,7 +84,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: "angular.module('app').filter('foo', function(){return function(){return 'bar';};})",
-      scriptUrl: 'app/foo.filter.js'
+      scriptUrl: 'app/foo.filter.js',
+      recipes: ['filter']
     });
 
     expect($filter('foo')()).to.equal('bar');
@@ -107,7 +109,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: '',
-      scriptUrl: 'app/foo.filter.js'
+      scriptUrl: 'app/foo.filter.js',
+      recipes: ['filter']
     });
 
     expect($route.reload).to.have.callCount(1);
@@ -128,7 +131,8 @@ describe('controller changed listener', function() {
 
     listener({
       script: '',
-      scriptUrl: 'app/foo.filter.js'
+      scriptUrl: 'app/foo.filter.js',
+      recipes: ['filter']
     });
 
     expect($state.reload).to.have.callCount(1);
@@ -147,7 +151,8 @@ describe('controller changed listener', function() {
 
     var fn = listener.bind(null, {
       script: "angular.module('app').filter('fooCtrl', function(){})",
-      scriptUrl: 'app/foo.filter.js'
+      scriptUrl: 'app/foo.filter.js',
+      recipes: ['filter']
     });
 
     expect(fn).to.throw('$filterProvider');

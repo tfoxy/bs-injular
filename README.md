@@ -3,8 +3,9 @@
 [![npm version](http://img.shields.io/npm/v/bs-injular.svg)](https://npmjs.org/package/bs-injular)
 [![build status](https://img.shields.io/travis/tfoxy/bs-injular.svg)](https://travis-ci.org/tfoxy/bs-injular)
 [![codecov](https://codecov.io/gh/tfoxy/bs-injular/branch/master/graph/badge.svg)](https://codecov.io/gh/tfoxy/bs-injular)
+[![Gitter](https://badges.gitter.im/tfoxy/bs-injular.svg)](https://gitter.im/tfoxy/bs-injular?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-> Inject angular templates, controllers and directives without reloading the page
+> Inject angular templates, controllers and directives with Browsersync
 
 This is a plugin for the awesome [BrowserSync](https://browsersync.io).
 
@@ -58,9 +59,10 @@ browserSync.use(bsInjular, {
   templates: '**/app/**/*.html',
   controllers: '**/app/**/*.controller.js',
   directives: '**/app/**/*.directive.js',
+  filters: '**/app/**/*.filter.js',
   angularFile: '/bower_components/angular/angular.js',
   moduleFile: '**/app/index.module.js',
-  moduleName: 'fooApp'
+  ngApp: 'fooApp'
 });
 
 browserSync({
@@ -68,7 +70,7 @@ browserSync({
 });
 ```
 
-This supports template, controller and directive injection.
+This supports template, controller, directive and filter injection.
 
 
 ## Configuration
@@ -88,11 +90,11 @@ If you want to inject controllers, you must provide the following properties:
 {
   controllers: '**/app/**/*.controller.js',
   moduleFile: '**/app/index.module.js',
-  moduleName: 'fooApp'
+  ngApp: 'fooApp'
 }
 ```
 
-The module file and module name are necessary in order to get the `$controllerProvider`
+The module file and module name (ngApp value) are necessary to get the `$controllerProvider`
 in the config phase so that the controllers can be injected later.
 
 If you want to inject directives, you must provide the following properties:
@@ -102,11 +104,11 @@ If you want to inject directives, you must provide the following properties:
   directives: '**/app/**/*.directive.js',
   angularFile: '/bower_components/angular/angular.js',
   moduleFile: '**/app/index.module.js',
-  moduleName: 'fooApp'
+  ngApp: 'fooApp'
 }
 ```
 
-The module file and module name are necessary in order to get the `$compileProvider`
+The module file and module name (ngApp value) are necessary to get the `$compileProvider`
 in the config phase so that the directives can be injected later.  
 The angular file is necessary to keep track of the directives present in a file.
 
@@ -126,14 +128,38 @@ function Controller() {
 If there is any other angular recipe, it will be ignored.
 
 
-Also, when using the BrowserSync API, you must only reload the controller file when there is a change.
-If multiple js files are reloaded and one of them is not a controller, it will reload the page.  
+Also, when using the BrowserSync API, you must only reload the changed script file:
+`browserSync.reload('/app/main/main.controller.js')`.
+When `browserSync.stream` is used with multiple source files, it will reload the page.  
 If you use 
 [generator-gulp-angular](https://github.com/Swiip/generator-gulp-angular),
-you must change the watches behaviour so that only the controller is reloaded.  
+you must change the watches behaviour so that only the changed script is reloaded.  
 See:
 [scripts.js](https://github.com/tfoxy/bs-injular-demo/blob/master/gulp/scripts.js#L13-L18)
 [watch.js](https://github.com/tfoxy/bs-injular-demo/blob/master/gulp/watch.js#L26-L32)
+
+
+## Help
+
+If you have some problems with the configuration,
+you can get more information by setting the log level of Browsersync to `debug`:
+
+```js
+browserSync({
+  logLevel: 'debug',
+  /* browserSync options */
+});
+```
+
+If you get the following messages when changing a file:
+```sh
+[BS] [Injular] No moduleFile was matched: **/app/index.module.js
+[BS] [Injular] No angularFile was matched: /bower_components/angular/angular.js
+```
+you can check if those patterns match any of the requests made to the server.
+
+If you need more help, you can submit an issue
+or leave a message in [gitter](https://gitter.im/tfoxy/bs-injular).
 
 
 ## What's missing

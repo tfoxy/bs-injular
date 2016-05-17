@@ -190,7 +190,7 @@
     while ((node = tw.nextNode())) {
       var templateNodes = getTemplateNodes(node, templateUrl, $injector);
       var templateElements = angular.element(templateNodes);
-      var scope = templateElements.parent().scope().$new();
+      var scope = templateElements.scope().$new();
       var templateFunction = $compile(template);
 
       scope.$apply(function() {

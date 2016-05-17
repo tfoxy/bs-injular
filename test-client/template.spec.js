@@ -310,4 +310,49 @@ describe('template changed listener', function() {
     }
   });
 
+
+  it('should preserve the scope of a directive template', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div>{{foo}}</div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div foo></div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+
+    expect(element.text()).to.equal('bar');
+
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div>FOO{{foo}}</div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.text()).to.equal('FOObar');
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html',
+          scope: {},
+          controller: function($scope) {
+            $scope.foo = 'bar';
+          }
+        };
+      });
+    }
+  });
+
 });

@@ -89,7 +89,8 @@ describe('fileChanger', () => {
     it('should add directivesByUrl to bsInjular when evaluated', () => {
       let window = {};
       let angular = {
-        module: noop
+        module: noop,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window);
@@ -102,7 +103,8 @@ describe('fileChanger', () => {
     it('should add filtersCache to bsInjular when evaluated', () => {
       let window = {};
       let angular = {
-        module: noop
+        module: noop,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window);
@@ -117,7 +119,8 @@ describe('fileChanger', () => {
       let document = {};
       let module = noop;
       let angular = {
-        module
+        module,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
@@ -131,7 +134,8 @@ describe('fileChanger', () => {
       let module = {};
       let moduleFn = sinon.spy(() => module);
       let angular = {
-        module: moduleFn
+        module: moduleFn,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
@@ -149,7 +153,8 @@ describe('fileChanger', () => {
       };
       let moduleFn = () => module;
       let angular = {
-        module: moduleFn
+        module: moduleFn,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
@@ -166,7 +171,8 @@ describe('fileChanger', () => {
       };
       let moduleFn = () => module;
       let angular = {
-        module: moduleFn
+        module: moduleFn,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window);
@@ -183,7 +189,8 @@ describe('fileChanger', () => {
       };
       let moduleFn = () => module;
       let angular = {
-        module: moduleFn
+        module: moduleFn,
+        injector: {$$annotate: () => []}
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window);
@@ -288,7 +295,8 @@ describe('fileChanger', () => {
       let moduleFn = () => module;
       let angular = {
         module: moduleFn,
-        isString
+        isString,
+        injector: {$$annotate: () => []}
       };
       let filter = () => 'foo';
       
@@ -309,7 +317,8 @@ describe('fileChanger', () => {
       let moduleFn = () => module;
       let angular = {
         module: moduleFn,
-        isString
+        isString,
+        injector: {$$annotate: () => []}
       };
       let filter = () => 'foo';
       

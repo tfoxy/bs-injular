@@ -36,7 +36,9 @@
     localAngular._scriptUrl = data.scriptUrl;
     var jsInjector = new Function('angular', data.script);
     jsInjector(localAngular);
-    removeDeletedDirectives($injector, data.scriptUrl);
+    if (data.recipes.indexOf('directive') >= 0) {
+      removeDeletedDirectives($injector, data.scriptUrl);
+    }
 
     reloadRoute($injector);
   }

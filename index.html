@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Injular by tfoxy</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Injular</h1>
+        <p>Inject angular templates, controllers and directives with Browsersync</p>
+
+        <p class="view"><a href="https://github.com/tfoxy/bs-injular">View the Project on GitHub <small>tfoxy/bs-injular</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/tfoxy/bs-injular/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/tfoxy/bs-injular/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/tfoxy/bs-injular">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="injular-angularjs-1x-hot-reloading" class="anchor" href="#injular-angularjs-1x-hot-reloading" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Injular <sub><sup>(AngularJS 1.x hot reloading)</sup></sub>
+</h1>
+
+<p><a href="https://npmjs.org/package/bs-injular"><img src="http://img.shields.io/npm/v/bs-injular.svg" alt="npm version"></a>
+<a href="https://travis-ci.org/tfoxy/bs-injular"><img src="https://img.shields.io/travis/tfoxy/bs-injular.svg" alt="build status"></a>
+<a href="https://codecov.io/gh/tfoxy/bs-injular"><img src="https://codecov.io/gh/tfoxy/bs-injular/branch/master/graph/badge.svg" alt="codecov"></a>
+<a href="https://gitter.im/tfoxy/bs-injular?utm_source=badge&amp;utm_medium=badge&amp;utm_campaign=pr-badge"><img src="https://badges.gitter.im/tfoxy/bs-injular.svg" alt="Gitter"></a></p>
+
+<blockquote>
+<p>Inject angular templates, controllers and directives with Browsersync</p>
+</blockquote>
+
+<p>This is a plugin for the awesome <a href="https://browsersync.io">BrowserSync</a>.</p>
+
+<h2>
+<a id="install" class="anchor" href="#install" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Install</h2>
+
+<div class="highlight highlight-source-shell"><pre>$ npm install --save-dev bs-injular browser-sync</pre></div>
+
+<h2>
+<a id="try-it" class="anchor" href="#try-it" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Try it</h2>
+
+<div class="highlight highlight-source-shell"><pre>git clone https://github.com/tfoxy/bs-injular-demo.git
+<span class="pl-c1">cd</span> bs-injular-demo
+npm install <span class="pl-k">&amp;&amp;</span> bower install
+gulp serve</pre></div>
+
+<p>Modify the <code>*.html</code>, <code>*.controller.js</code> and <code>*.directive.js</code> files inside <code>src/app</code>
+and watch the changes instantly.</p>
+
+<p><strong><a href="https://raw.githubusercontent.com/tfoxy/bs-injular-demo/master/bs-injular.gif">Click here to watch GIF of demo</a></strong></p>
+
+<h2>
+<a id="setup" class="anchor" href="#setup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setup</h2>
+
+<h3>
+<a id="minimal" class="anchor" href="#minimal" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Minimal</h3>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> browserSync <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>browser-sync<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> bsInjular <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>bs-injular<span class="pl-pds">'</span></span>);
+
+<span class="pl-smi">browserSync</span>.<span class="pl-en">use</span>(bsInjular);
+
+<span class="pl-en">browserSync</span>({
+  <span class="pl-c">/* browserSync options */</span>
+});</pre></div>
+
+<p>This will inject all html files inside an app folder.</p>
+
+<h3>
+<a id="recommended" class="anchor" href="#recommended" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Recommended</h3>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-k">var</span> browserSync <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>browser-sync<span class="pl-pds">'</span></span>);
+<span class="pl-k">var</span> bsInjular <span class="pl-k">=</span> <span class="pl-c1">require</span>(<span class="pl-s"><span class="pl-pds">'</span>bs-injular<span class="pl-pds">'</span></span>);
+
+<span class="pl-smi">browserSync</span>.<span class="pl-en">use</span>(bsInjular, {
+  templates<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.html<span class="pl-pds">'</span></span>,
+  controllers<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.controller.js<span class="pl-pds">'</span></span>,
+  directives<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.directive.js<span class="pl-pds">'</span></span>,
+  filters<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.filter.js<span class="pl-pds">'</span></span>,
+  angularFile<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>/bower_components/angular/angular.js<span class="pl-pds">'</span></span>,
+  moduleFile<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/index.module.js<span class="pl-pds">'</span></span>,
+  ngApp<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>fooApp<span class="pl-pds">'</span></span>
+});
+
+<span class="pl-en">browserSync</span>({
+  <span class="pl-c">/* browserSync options */</span>
+});</pre></div>
+
+<p>This supports template, controller, directive and filter injection.</p>
+
+<h2>
+<a id="configuration" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Configuration</h2>
+
+<p>By default, the following options are provided:</p>
+
+<div class="highlight highlight-source-js"><pre>{
+  templates<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.html<span class="pl-pds">'</span></span>,
+  notify<span class="pl-k">:</span> <span class="pl-c1">true</span>
+}</pre></div>
+
+<p>If you want to inject controllers, you must provide the following properties:</p>
+
+<div class="highlight highlight-source-js"><pre>{
+  controllers<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.controller.js<span class="pl-pds">'</span></span>,
+  moduleFile<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/index.module.js<span class="pl-pds">'</span></span>,
+  ngApp<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>fooApp<span class="pl-pds">'</span></span>
+}</pre></div>
+
+<p>The module file and module name (ngApp value) are necessary to get the <code>$controllerProvider</code>
+in the config phase so that the controllers can be injected later.</p>
+
+<p>If you want to inject directives, you must provide the following properties:</p>
+
+<div class="highlight highlight-source-js"><pre>{
+  directives<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/**/*.directive.js<span class="pl-pds">'</span></span>,
+  angularFile<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>/bower_components/angular/angular.js<span class="pl-pds">'</span></span>,
+  moduleFile<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>**/app/index.module.js<span class="pl-pds">'</span></span>,
+  ngApp<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>fooApp<span class="pl-pds">'</span></span>
+}</pre></div>
+
+<p>The module file and module name (ngApp value) are necessary to get the <code>$compileProvider</code>
+in the config phase so that the directives can be injected later.<br>
+The angular file is necessary to keep track of the directives present in a file.</p>
+
+<p><strong>WARNING:</strong> The controller files must retrieve the module using <code>angular.module()</code>
+and only use the <code>controller</code> recipe. The same applies to directives.</p>
+
+<div class="highlight highlight-source-js"><pre>angular
+  .<span class="pl-en">module</span>(<span class="pl-s"><span class="pl-pds">'</span>myProject<span class="pl-pds">'</span></span>)
+  .<span class="pl-en">controller</span>(<span class="pl-s"><span class="pl-pds">'</span>Controller<span class="pl-pds">'</span></span>, Controller);
+
+<span class="pl-k">function</span> <span class="pl-en">Controller</span>() {
+  <span class="pl-c">// Controller code here</span>
+}</pre></div>
+
+<p>If there is any other angular recipe, it will be ignored.</p>
+
+<p>Also, when using the BrowserSync API, you must only reload the changed script file:
+<code>browserSync.reload('/app/main/main.controller.js')</code>.
+When <code>browserSync.stream</code> is used with multiple source files, it will reload the page.<br>
+If you use 
+<a href="https://github.com/Swiip/generator-gulp-angular">generator-gulp-angular</a>,
+you must change the watches behaviour so that only the changed script is reloaded.<br>
+See:
+<a href="https://github.com/tfoxy/bs-injular-demo/blob/master/gulp/scripts.js#L13-L18">scripts.js</a>
+<a href="https://github.com/tfoxy/bs-injular-demo/blob/master/gulp/watch.js#L26-L32">watch.js</a></p>
+
+<h2>
+<a id="help" class="anchor" href="#help" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Help</h2>
+
+<p>If you have some problems with the configuration,
+you can get more information by setting the log level of Browsersync to <code>debug</code>:</p>
+
+<div class="highlight highlight-source-js"><pre><span class="pl-en">browserSync</span>({
+  logLevel<span class="pl-k">:</span> <span class="pl-s"><span class="pl-pds">'</span>debug<span class="pl-pds">'</span></span>,
+  <span class="pl-c">/* browserSync options */</span>
+});</pre></div>
+
+<p>If you get the following messages when changing a file:</p>
+
+<div class="highlight highlight-source-shell"><pre>[BS] [Injular] No moduleFile was matched: <span class="pl-k">**</span>/app/index.module.js
+[BS] [Injular] No angularFile was matched: /bower_components/angular/angular.js</pre></div>
+
+<p>you can check if those patterns match any of the requests made to the server.</p>
+
+<p>If you need more help, you can submit an issue
+or leave a message in <a href="https://gitter.im/tfoxy/bs-injular">gitter</a>.</p>
+
+<h2>
+<a id="whats-missing" class="anchor" href="#whats-missing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What's missing</h2>
+
+<ul>
+<li><p>Support for javascript bundlers: webpack, browserify, rollup<i></i>.js</p></li>
+<li><p>Show the file and line number when an error is thrown in an injected script.<br>
+Currently, the script is evaluated using <code>Function</code>.</p></li>
+</ul>
+
+<h2>
+<a id="resources" class="anchor" href="#resources" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Resources</h2>
+
+<ul>
+<li><a href="https://github.com/shakyShane/browser-sync">BrowserSync</a></li>
+<li><a href="https://github.com/shakyShane/browser-sync-spa">BrowserSync SPA</a></li>
+</ul>
+
+<p>Inspired by
+<a href="https://github.com/shakyShane/html-injector">shakyShane/html-injector</a>
+and
+<a href="https://github.com/pashaigood/browser-sync-angular-template">pashaigood/browser-sync-angular-template</a></p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/tfoxy">tfoxy</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>

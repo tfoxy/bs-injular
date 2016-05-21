@@ -47,7 +47,7 @@ browserSync({
 });
 ```
 
-This will inject all html files inside an app folder.
+This will inject all html files inside an `app` folder.
 
 ### Recommended
 
@@ -129,7 +129,9 @@ If there is any other angular recipe, it will be ignored.
 
 
 Also, when using the BrowserSync API, you must only reload the changed script file:
-`browserSync.reload('/app/main/main.controller.js')`.
+```js
+browserSync.reload('/app/main/main.controller.js')
+```
 When `browserSync.stream` is used with multiple source files, it will reload the page.  
 If you use 
 [generator-gulp-angular](https://github.com/Swiip/generator-gulp-angular),
@@ -165,6 +167,8 @@ or leave a message in [gitter](https://gitter.im/tfoxy/bs-injular).
 ## What's missing
 
 * Support for javascript bundlers: webpack, browserify, rollup<i></i>.js
+
+* Injection of `service` and `factory` recipes.
 
 * Show the file and line number when an error is thrown in an injected script.  
   Currently, the script is evaluated using `Function`.

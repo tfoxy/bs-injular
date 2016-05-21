@@ -23,5 +23,12 @@ describe('getUrlFromPathFunction', () => {
     let url = getUrlFromPathFunction('', baseDirs)(filepath);
     expect(url).to.equal('/dir/bar.txt');
   });
+  
+  it('should work with a relative leading dot baseDir', () => {
+    let baseDirs = ['./foo/src'];
+    let filepath = 'foo/src/dir/bar.txt';
+    let url = getUrlFromPathFunction('', baseDirs)(filepath);
+    expect(url).to.equal('/dir/bar.txt');
+  });
 
 });

@@ -1,7 +1,7 @@
 {
   "name": "bs-injular",
   "version": "0.4.0",
-  "description": "Inject angular templates and controllers without reloading the page",
+  "description": "Inject angular templates, controllers and directives with Browsersync",
   "main": "lib/index.js",
   "scripts": {
     "test": "npm run lint && npm run test:server && npm run test:client && npm run test:merged",

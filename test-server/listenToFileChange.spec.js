@@ -112,6 +112,19 @@ describe('listenToFileChange', () => {
       expect(controllerEvent.event).to.equal('change');
     });
 
+    it('should work correctly when using browserSync.serveStatic option', () => {
+      bs.options = bs.options.set('serveStatic', 'app');
+      config.templates = '**/*.html';
+      listenToFileChange(config, bs);
+      sinon.spy(bs.io.sockets, 'emit');
+      bs.emitter.emit('file:changed', templateEvent);
+      expect(bs.io.sockets.emit).to.have.callCount(1)
+        .and.to.have.been.calledWith(
+          'injularTemplate:changed',
+          sinon.match.has('templateUrl', '/foo.html')
+        );
+    });
+
   });
 
 });

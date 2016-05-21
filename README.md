@@ -130,7 +130,7 @@ If there is any other angular recipe, it will be ignored.
 
 Also, when using the BrowserSync API, you must only reload the changed script file:
 ```js
-browserSync.reload('/app/main/main.controller.js')
+browserSync.reload('app/main/main.controller.js')
 ```
 When `browserSync.stream` is used with multiple source files, it will reload the page.  
 If you use 

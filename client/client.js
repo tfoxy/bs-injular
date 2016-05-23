@@ -7,6 +7,7 @@
   // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
   var COMMENT_NODE = 8;
 
+  var logger = createLogger();
   var sockets = bs.socket;
 
   sockets.on(TEMPLATE_CHANGED_EVENT, templateChangedListener);
@@ -14,6 +15,9 @@
 
 
   function templateChangedListener(data) {
+    setLoggerPriority(data.logLevel);
+    logger.debug('templateChangedListener', data);
+    
     var $injector = getInjector();
 
     var $templateCache = $injector.get('$templateCache');
@@ -30,6 +34,9 @@
 
 
   function scriptChangedListener(data) {
+    setLoggerPriority(data.logLevel);
+    logger.debug('scriptChangedListener', data);
+    
     var $injector = getInjector();
 
     var localAngular = getLocalAngular($injector);
@@ -87,7 +94,7 @@
         }
       }
     } else {
-      console.warn('[BS-Injular] No directives for url: ' + scriptUrl);
+      logger.error('No directives for url:', scriptUrl);
     }
   }
 
@@ -181,6 +188,7 @@
 
     $templateCache.remove(cacheUrl);
     $templateCache.put(cacheUrl, template);
+    logger.debug('Template cache replaced:', cacheUrl);
   }
 
 
@@ -195,9 +203,12 @@
       var scope = templateElements.scope().$new();
       var templateFunction = $compile(template);
 
+      logger.debug('Applying template with scope:', scope, ' ; replacing:', templateElements);
+
       scope.$apply(function() {
         var newTemplateElements = templateFunction(scope);
         templateElements.replaceWith(newTemplateElements);
+        logger.debug('Template applied:', templateUrl);
       });
     }
   }
@@ -216,7 +227,7 @@
       }
     }
 
-    console.info('[BS-Injular] bs-injular-end not found. Reloading route.');
+    logger.info('bs-injular-end not found. Reloading route.');
     reloadRoute($injector);
     throwError('Can\'t find ending comment node: bs-injular-end ' + templateUrl);
   }
@@ -374,7 +385,7 @@
           });
         }
       } else {
-        console.warn('[BS-Injular] No directives for url: ' + localAngular._scriptUrl);
+        logger.error('No directives for url:', localAngular._scriptUrl);
       }
 
       return this;
@@ -461,5 +472,47 @@
 
   function hasOwnProperty(object, property) {
     return Object.prototype.hasOwnProperty.call(object, property);
+  }
+
+
+  function createLogger() {
+    var logLevels = {
+      'trace': 100,
+      'debug': 200,
+      'warn':  300,
+      'info':  400,
+      'error': 500,
+      'silent': 9001
+    };
+    var logger = {
+      logLevels: logLevels,
+      priority: logLevels['info']
+    };
+
+    for (var logLevel in logLevels) {
+      logger[logLevel] = logFn(logLevel);
+    }
+
+    return logger;
+
+
+    function logFn(logLevel) {
+      var logLevelPriority = logLevels[logLevel];
+      return log;
+
+      function log() {
+        if (logger.priority <= logLevelPriority) {
+          Array.prototype.unshift.call(arguments, '[BS-Injular]');
+          (console[logLevels[logLevel]] || console.log).apply(console, arguments);
+        }
+      }
+    }
+  }
+
+
+  function setLoggerPriority(logLevel) {
+    if (typeof logLevel === 'undefined') return;
+    
+    logger.priority = logger.logLevels[logLevel] || logLevel;
   }
 })(window.___browserSync___);

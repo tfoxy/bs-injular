@@ -205,7 +205,7 @@
 
       logger.debug('Applying template with scope:', scope, ' ; replacing:', templateElements);
 
-      scope.$apply(function() {
+      scope.$apply(function(scope) {
         var newTemplateElements = templateFunction(scope);
         templateElements.replaceWith(newTemplateElements);
         logger.debug('Template applied:', templateUrl);

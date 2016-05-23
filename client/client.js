@@ -195,6 +195,7 @@
   function replaceTemplateInDom($injector, templateUrl, template) {
     var tw = createInjularCommentWalker(templateUrl);
     var $compile = $injector.get('$compile');
+    var $rootScope = $injector.get('$rootScope');
 
     var node;
     while ((node = tw.nextNode())) {
@@ -205,7 +206,7 @@
 
       logger.debug('Applying template with scope:', scope, ' ; replacing:', templateElements);
 
-      scope.$apply(function(scope) {
+      $rootScope.$apply(function() {
         var newTemplateElements = templateFunction(scope);
         templateElements.replaceWith(newTemplateElements);
         logger.debug('Template applied:', templateUrl);

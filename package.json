@@ -26,7 +26,6 @@
     "url": "https://github.com/tfoxy/bs-injular/issues"
   },
   "dependencies": {
-    "extend": "~3.0.0",
     "minimatch": "~3.0.0",
     "tamper": "0.1.0"
   },

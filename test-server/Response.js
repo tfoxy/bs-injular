@@ -1,7 +1,4 @@
-const extend = require('extend');
-
-
-extend(Response.prototype, {
+Object.assign(Response.prototype, {
   setHeader,
   writeHead,
   write,

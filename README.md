@@ -1,4 +1,4 @@
-# Injular <sub><sup>(AngularJS 1.x hot reloading)</sup></sub>
+# Injular
 
 [![npm version](http://img.shields.io/npm/v/bs-injular.svg)](https://npmjs.org/package/bs-injular)
 [![build status](https://img.shields.io/travis/tfoxy/bs-injular.svg)](https://travis-ci.org/tfoxy/bs-injular)
@@ -7,6 +7,7 @@
 
 > Inject angular templates, controllers and directives with Browsersync
 
+AngularJS 1.x hot reloading.
 This is a plugin for the awesome [BrowserSync](https://browsersync.io).
 
 
@@ -80,7 +81,8 @@ By default, the following options are provided:
 ```js
 {
   templates: '**/app/**/*.html',
-  notify: true
+  notify: true,
+  screwIE8: true
 }
 ```
 
@@ -141,6 +143,20 @@ See:
 [watch.js](https://github.com/tfoxy/bs-injular-demo/blob/master/gulp/watch.js#L26-L32)
 
 
+## Version support
+
+Supports AngularJS 1.x starting from 1.2.  
+Supports all modern browsers and IE >= 9.
+For IE8, you must set screwIE8 option to false:
+
+```js
+browserSync.use(bsInjular, {
+  screwIE8: false,
+  /* bs-injular options */
+});
+```
+
+
 ## Help
 
 If you have some problems with the configuration,
@@ -166,7 +182,8 @@ or leave a message in [gitter](https://gitter.im/tfoxy/bs-injular).
 
 ## What's missing
 
-* Support for javascript bundlers: webpack, browserify, rollup<i></i>.js
+* Support for javascript bundlers: webpack, browserify, rollup<i></i>.js  
+  Template injection works. Scripts changes reload the browser.
 
 * Injection of `service` and `factory` recipes.
 

@@ -38,6 +38,15 @@ describe('fileChanger', () => {
       expect(newContent).to.endWith('<!--bs-injular-end /app/main.html-->');
     });
 
+    it('should ie8 line if supportIE8 option is true', () => {
+      let content = '<div><span>FOO</span><span>BAR</span</div>';
+      let newContent = fileChanger.wrapTemplate(content, '/app/main.html', {
+        supportIE8: true
+      });
+      expect(newContent).to.contain('<!--[if lt IE 9]>');
+      expect(newContent).to.contain('<![endif]-->');
+    });
+
   });
 
   describe('.appendProvideGetter', () => {
@@ -53,10 +62,11 @@ describe('fileChanger', () => {
       let evaluate = new Function('angular', 'window', content);
       let window = {};
       let angular = {
-        module: function() {
+        module: () => {
           return {
             config: function(array) {
               array[array.length-1]('$controllerProvider');
+              return this;
             }
           };
         }
@@ -70,6 +80,27 @@ describe('fileChanger', () => {
         '___bsInjular___.$controllerProvider',
         '$controllerProvider'
       );
+    });
+
+    it('should add startBsInjular directive if supportIE8 option is true', () => {
+      let content = fileChanger.appendProvideGetter('', 'app', {
+        supportIE8: true
+      });
+      let evaluate = new Function('angular', 'window', content);
+      let window = {};
+      let directive = sinon.spy();
+      let angular = {
+        module: () => {
+          return {
+            config: function(){ return this; },
+            directive
+          };
+        }
+      };
+
+      evaluate(angular, window);
+
+      expect(directive).to.have.callCount(1);
     });
 
   });

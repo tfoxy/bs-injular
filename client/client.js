@@ -255,7 +255,7 @@
             node.data === 'bs-injular-start ' + templateUrl
             ) || (
             node.nodeType === 1 &&
-            node.getAttribute('bs-injular-start') === templateUrl)
+            node.getAttribute('start-bs-injular') === templateUrl)
             ) {
           return node;
         }
@@ -503,7 +503,8 @@
       function log() {
         if (logger.priority <= logLevelPriority) {
           Array.prototype.unshift.call(arguments, '[BS-Injular]');
-          (console[logLevels[logLevel]] || console.log).apply(console, arguments);
+          var consoleLog = console[logLevels[logLevel]] || console.log;
+          Function.prototype.apply.call(consoleLog, console, arguments);
         }
       }
     }

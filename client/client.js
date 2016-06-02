@@ -201,13 +201,13 @@
       var templateNodes = getTemplateNodes(node, templateUrl, $injector);
       var templateElements = angular.element(templateNodes);
       var scope = templateElements.scope().$new();
-      var templateFunction = $compile(template);
 
       logger.debug('Applying template with scope:', scope, ' ; replacing:', templateElements);
 
       scope.$apply(function(scope) {
-        var newTemplateElements = templateFunction(scope);
+        var newTemplateElements = angular.element(template);
         templateElements.replaceWith(newTemplateElements);
+        $compile(newTemplateElements)(scope);
         logger.debug('Template applied:', templateUrl);
       });
     }

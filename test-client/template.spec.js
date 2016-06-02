@@ -355,4 +355,41 @@ describe('template changed listener', function() {
     }
   });
 
+
+  it('should add template to dom before applying scope', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div foo>FOO</div>',
+      '<div bar>BAR</div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      template,
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.text()).to.equal('BAR');
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('foo', function() {
+        return {
+          restrict: 'A',
+          compile: function(element) {
+            element.remove();
+          }
+        };
+      });
+    }
+  });
+
 });

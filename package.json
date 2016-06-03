@@ -1,6 +1,6 @@
 {
   "name": "bs-injular",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Inject angular templates, controllers and directives with Browsersync",
   "main": "lib/index.js",
   "scripts": {

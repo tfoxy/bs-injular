@@ -200,16 +200,18 @@
     while ((node = tw.nextNode())) {
       var templateNodes = getTemplateNodes(node, templateUrl, $injector);
       var templateElements = angular.element(templateNodes);
-      var scope = templateElements.scope().$new();
+      var newTemplateElements = angular.element(template);
 
-      logger.debug('Applying template with scope:', scope, ' ; replacing:', templateElements);
+      logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
+      templateElements.replaceWith(newTemplateElements);
 
+      var scope = newTemplateElements.scope();
+      logger.debug('Applying scope:', scope);
       scope.$apply(function(scope) {
-        var newTemplateElements = angular.element(template);
-        templateElements.replaceWith(newTemplateElements);
         $compile(newTemplateElements)(scope);
-        logger.debug('Template applied:', templateUrl);
       });
+
+      logger.debug('Template applied:', templateUrl);
     }
   }
 

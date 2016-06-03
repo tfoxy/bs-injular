@@ -38,8 +38,13 @@ describe('template changed listener', function() {
     angular.bootstrap(element);
     element.injector().get('$templateCache').put('/app/foo.html', template);
 
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<span>BAR</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
     listener({
-      template: '<span>BAR</span>',
+      template: newTemplate,
       templateUrl: '/app/foo.html'
     });
     expect(element.text()).to.equal('BAR');
@@ -64,8 +69,13 @@ describe('template changed listener', function() {
     angular.bootstrap(element);
     element.injector().get('$templateCache').put('app/foo.html', template);
 
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<span>BAR</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
     listener({
-      template: '<span>BAR</span>',
+      template: newTemplate,
       templateUrl: '/app/foo.html'
     });
     expect(element.text()).to.equal('BAR');
@@ -102,8 +112,13 @@ describe('template changed listener', function() {
       angular.bootstrap(element);
       element.injector().get('$templateCache').put('/app/foo.html', template);
 
+      var newTemplate = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<span>BAR</span>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
       listener({
-        template: '<span>BAR</span>',
+        template: newTemplate,
         templateUrl: '/app/foo.html'
       });
       expect(element.text()).to.equal('BAR');
@@ -131,8 +146,13 @@ describe('template changed listener', function() {
       angular.bootstrap(element);
       element.injector().get('$templateCache').put('/app/foo.html', template);
 
+      var newTemplate = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<span>BAR</span>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
       listener({
-        template: '<span>BAR</span>',
+        template: newTemplate,
         templateUrl: '/app/foo.html'
       });
       expect(element.text()).to.equal('12BAR34');
@@ -390,6 +410,40 @@ describe('template changed listener', function() {
         };
       });
     }
+  });
+
+
+  it('should autoclose with bs-injular-end comment if it is not found', function() {
+    var template = [
+      '<!--bs-injular-start /app/error.html-->',
+      '<div>FOO</div>',
+      '<!--bs-injular-end /app/error.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      template,
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element);
+    element.injector().get('$templateCache').put('/app/error.html', template);
+
+    var newTemplate = [
+      '<!--bs-injular-start /app/error.html-->',
+      '<div>FOO</span>', // malformed template
+      '<!--bs-injular-end /app/error.html-->'
+    ].join('');
+
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/error.html'
+    });
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/error.html'
+    });
+
+    expect(element.text()).to.equal('FOO');
   });
 
 });

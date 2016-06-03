@@ -199,8 +199,12 @@
     var node;
     while ((node = tw.nextNode())) {
       var templateNodes = getTemplateNodes(node, templateUrl, $injector);
-      var templateElements = angular.element(templateNodes);
       var newTemplateElements = angular.element(template);
+      if (newTemplateElements.eq(-1)[0].nodeType !== COMMENT_NODE) {
+        logger.info('POSSIBLE ERROR ON TEMPLATE:', templateUrl, ' . CHECK CLOSING TAGS');
+        templateNodes.pop();
+      }
+      var templateElements = angular.element(templateNodes);
 
       logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       templateElements.replaceWith(newTemplateElements);

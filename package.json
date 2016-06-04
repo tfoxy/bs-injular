@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "test:server": "istanbul cover _mocha --dir coverage-server --report text-summary --report json -x test-server/**/* test-server",
     "test:client": "karma start --single-run",
-    "test:merged": "istanbul report --dir coverage-merged lcov text-summary"
+    "test:merged": "istanbul report --dir coverage-merged lcov text-summary",
+    "build": "babel lib/fileChanger.js -o client/file-changer.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,9 @@
   },
   "devDependencies": {
     "angular": "~1.5.3",
+    "babel-cli": "6.9.0",
+    "babel-plugin-transform-es2015-modules-umd": "6.8.0",
+    "babel-preset-es2015": "6.9.0",
     "browser-sync": "~2.11.2",
     "chai": "~3.5.0",
     "chai-string": "~1.2.0",

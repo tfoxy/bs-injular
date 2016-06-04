@@ -1,22 +1,21 @@
 
-(function (bs) {
+(function () {
   'use strict';
-  var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
-  var SCRIPT_CHANGED_EVENT = 'injularScript:changed';
   var DIRECTIVE_SUFFIX = 'Directive';
   // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
   var COMMENT_NODE = 8;
 
-  var logger = createLogger();
-  var sockets = bs.socket;
+  var injular = window.injular = {
+    injectTemplate: injectTemplate,
+    injectScript: injectScript,
+    _logger: createLogger(),
+    _setLoggerPriority: setLoggerPriority
+  };
 
-  sockets.on(TEMPLATE_CHANGED_EVENT, templateChangedListener);
-  sockets.on(SCRIPT_CHANGED_EVENT, scriptChangedListener);
 
-
-  function templateChangedListener(data) {
-    setLoggerPriority(data.logLevel);
-    logger.debug('templateChangedListener', data);
+  function injectTemplate(data) {
+    injular._setLoggerPriority(data.logLevel);
+    injular._logger.debug('injectTemplate', data);
     
     var $injector = getInjector();
 
@@ -33,9 +32,9 @@
   }
 
 
-  function scriptChangedListener(data) {
-    setLoggerPriority(data.logLevel);
-    logger.debug('scriptChangedListener', data);
+  function injectScript(data) {
+    injular._setLoggerPriority(data.logLevel);
+    injular._logger.debug('injectScript', data);
     
     var $injector = getInjector();
 
@@ -94,7 +93,7 @@
         }
       }
     } else {
-      logger.error('No directives for url:', scriptUrl);
+      injular._logger.error('No directives for url:', scriptUrl);
     }
   }
 
@@ -188,7 +187,7 @@
 
     $templateCache.remove(cacheUrl);
     $templateCache.put(cacheUrl, template);
-    logger.debug('Template cache replaced:', cacheUrl);
+    injular._logger.debug('Template cache replaced:', cacheUrl);
   }
 
 
@@ -201,21 +200,21 @@
       var templateNodes = getTemplateNodes(node, templateUrl, $injector);
       var newTemplateElements = angular.element(template);
       if (newTemplateElements.eq(-1)[0].nodeType !== COMMENT_NODE) {
-        logger.info('POSSIBLE ERROR ON TEMPLATE:', templateUrl, ' . CHECK CLOSING TAGS');
+        injular._logger.info('POSSIBLE ERROR ON TEMPLATE:', templateUrl, ' . CHECK CLOSING TAGS');
         templateNodes.pop();
       }
       var templateElements = angular.element(templateNodes);
 
-      logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
+      injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       templateElements.replaceWith(newTemplateElements);
 
       var scope = newTemplateElements.scope();
-      logger.debug('Applying scope:', scope);
+      injular._logger.debug('Applying scope:', scope);
       scope.$apply(function(scope) {
         $compile(newTemplateElements)(scope);
       });
 
-      logger.debug('Template applied:', templateUrl);
+      injular._logger.debug('Template applied:', templateUrl);
     }
   }
 
@@ -233,7 +232,7 @@
       }
     }
 
-    logger.info('bs-injular-end not found. Reloading route.');
+    injular._logger.info('bs-injular-end not found. Reloading route.');
     reloadRoute($injector);
     throwError('Can\'t find ending comment node: bs-injular-end ' + templateUrl);
   }
@@ -391,7 +390,7 @@
           });
         }
       } else {
-        logger.error('No directives for url:', localAngular._scriptUrl);
+        injular._logger.error('No directives for url:', localAngular._scriptUrl);
       }
 
       return this;
@@ -520,6 +519,6 @@
   function setLoggerPriority(logLevel) {
     if (typeof logLevel === 'undefined') return;
     
-    logger.priority = logger.logLevels[logLevel] || logLevel;
+    this._logger.priority = this._logger.logLevels[logLevel] || logLevel;
   }
-})(window.___browserSync___);
+})();

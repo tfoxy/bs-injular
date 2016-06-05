@@ -21,7 +21,7 @@ module.exports = function(config) {
       'node_modules/angular/angular.js',
       'test-client/ngApp.js',
       'test-client/bs.js',
-      'client/client.js',
+      'client/injular.js',
       'client/**/*.js',
       'test-client/**/*.js'
     ],

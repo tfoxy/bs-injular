@@ -1,9 +1,9 @@
 // Karma configuration
 // Generated on Wed Apr 13 2016 23:13:43 GMT-0300 (ART)
+'use strict';
 
 module.exports = function(config) {
-  config.set({
-
+  let props = {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
 
@@ -30,22 +30,6 @@ module.exports = function(config) {
     // list of files to exclude
     exclude: [
     ],
-
-
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-    preprocessors: {
-      'client/**/!(file-changer).js': ['coverage']
-    },
-
-
-    coverageReporter: {
-      dir : 'coverage-client/',
-      reporters : [
-        {type: 'json'},
-        {type: 'text-summary'}
-      ]
-    },
 
 
     // test results reporter to use
@@ -83,5 +67,39 @@ module.exports = function(config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity
-  });
+  };
+
+  if (process.env.DEBUG) {
+    Object.assign(props, {
+      browsers: ['PhantomJS_debug'],
+
+      customLaunchers: {
+        'PhantomJS_debug': {
+          base: 'PhantomJS',
+          debug: true
+        }
+      }
+    });
+  } else if (!process.env.NO_COVERAGE) {
+    Object.assign(props, {
+      // preprocess matching files before serving them to the browser
+      // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
+      preprocessors: {
+        'client/**/!(file-changer).js': ['coverage']
+      },
+
+      coverageReporter: {
+        dir : 'coverage-client/',
+        reporters : [
+          {type: 'json'},
+          {type: 'text-summary'}
+        ]
+      }
+    });
+  }
+  if (process.env.NO_BROWSERS) {
+    props.browsers = [];
+  }
+
+  config.set(props);
 };

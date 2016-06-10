@@ -6,6 +6,7 @@ describe('controller changed listener', function() {
   var listener = bs.__events[CONTROLLER_CHANGED_EVENT];
   var rootElement, warn;
 
+  /* eslint-disable no-console */
   before(function() {
     var body = angular.element(document.body);
     rootElement = angular.element('<div></div>');
@@ -26,6 +27,7 @@ describe('controller changed listener', function() {
     rootElement.remove();
     console.warn = warn;
   });
+  /* eslint-enable no-console */
 
   function throwWarningError(msg) {
     throw new Error('Warning printed: ' + msg);

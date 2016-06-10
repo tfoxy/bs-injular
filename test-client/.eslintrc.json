@@ -13,6 +13,5 @@
     "sinon": false
   },
   "rules": {
-    "no-console": 0
   }
 }

@@ -4,6 +4,27 @@
   var DIRECTIVE_SUFFIX = 'Directive';
   // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
   var COMMENT_NODE = 8;
+  var TEMPLATE_WATCHERS = [
+    {fn: 'watchGroupAction', get: 'expressionInputWatch'},  // binding
+    {fn: 'watchGroupSubAction', get: 'expressionInputWatch'},  // multiple bindings
+    {fn: 'interpolateFnWatchAction', get: ''},  // binding 1.2
+    {fn: 'noop', get: 'ngModelWatch'},  // ng-model
+    {fn: '', get: 'ngModelWatch'},  // ng-model 1.2
+    {fn: '$watchCollectionAction', get: 'regularInterceptedExpression'},  // ng-repeat, ng-options
+    {fn: '$watchCollectionAction', get: '$watchCollectionWatch'},  // ng-repeat 1.2, ng-options 1.2
+    {fn: 'ngIfWatchAction', get: ''},  // ng-if
+    {fn: 'ngClassWatchAction', get: ''},  // ng-class
+    {fn: 'ngBooleanAttrWatchAction', get: ''},  // ng-required, ng-readonly, ng-selected
+    {fn: 'valueWatchAction', get: ''},  // ng-value
+    {fn: 'ngShowWatchAction', get: ''},  // ng-show
+    {fn: 'ngHideWatchAction', get: ''},  // ng-hide
+    {fn: 'ngBindWatchAction', get: ''},  // ng-bind
+    {fn: 'ngStyleWatchAction', get: ''},  // ng-style
+    {fn: 'ngBindHtmlWatchAction', get: 'expressionInputWatch'},  // ng-bind-html
+    {fn: 'ngBindHtmlWatchAction', get: 'getStringValue'},  // ng-bind-html 1.2
+    {fn: 'ngAttrAliasWatchAction', get: ''},  // ng-maxlength, ng-minlength
+    {fn: 'ngSwitchWatchAction', get: ''}  // ng-switch
+  ];
 
   var injular = window.injular = {
     injectTemplate: injectTemplate,
@@ -204,17 +225,116 @@
         templateNodes.pop();
       }
       var templateElements = angular.element(templateNodes);
+      var scope = templateElements.scope();
+      destroyChildScopes(scope);
+      removeTemplateWatchers(scope);
+      removeTemplateListeners(scope);
 
       injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       templateElements.replaceWith(newTemplateElements);
 
-      var scope = newTemplateElements.scope();
       injular._logger.debug('Applying scope:', scope);
       scope.$apply(function(scope) {
         $compile(newTemplateElements)(scope);
       });
 
       injular._logger.debug('Template applied:', templateUrl);
+    }
+  }
+
+
+  function destroyChildScopes(scope) {
+    var childScope = scope.$$childHead;
+    while (childScope) {
+      var auxScope = childScope.$$nextSibling;
+      childScope.$destroy();
+      childScope = auxScope;
+    }
+  }
+
+
+  function getFunctionName(fn) {
+    var name = fn.name;
+    if (typeof name !== 'string') {
+      name = /^function\s+([\w\$]+)\s*\(/.exec(fn.toString())[1];
+    }
+    return name;
+  }
+
+
+  function incrementWatchersCount(current, count) {
+    do {
+      current.$$watchersCount += count;
+    } while ((current = current.$parent));
+  }
+
+
+  function decrementListenerCount(current, count, name) {
+    do {
+      current.$$listenerCount[name] -= count;
+
+      if (current.$$listenerCount[name] === 0) {
+        delete current.$$listenerCount[name];
+      }
+    } while ((current = current.$parent));
+  }
+
+
+  function isWatcherFromTemplate(watcher) {
+    var fnName = getFunctionName(watcher.fn);
+    var getName = getFunctionName(watcher.get);
+    for (var i = 0; i < TEMPLATE_WATCHERS.length; i++) {
+      var templateWatcher = TEMPLATE_WATCHERS[i];
+      if (templateWatcher.fn === fnName && templateWatcher.get === getName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  function isListenerFromTemplate(listener) {
+    var ngModelDestroyListener = 'modelCtrl.$$parentForm.$removeControl(modelCtrl);';
+    var ngOptionsDestroyListener = 'self.renderUnknownOption = noop;';
+    var formDestroyListener = 'formCtrl.$removeControl(modelCtrl);';
+    var listenerString = listener.toString();
+    return listenerString.indexOf(ngModelDestroyListener) >= 0 ||
+           listenerString.indexOf(ngOptionsDestroyListener) >= 0 ||
+           listenerString.indexOf(formDestroyListener) >= 0;
+  }
+
+
+  function removeTemplateWatchers(scope) {
+    var watchers = scope.$$watchers;
+    if (!watchers) return;
+    
+    var counter = 0;
+    for (var i = watchers.length; i--;) {
+      if (isWatcherFromTemplate(watchers[i])) {
+        watchers.splice(i, 1);
+        counter++;
+      }
+    }
+    if (counter && typeof scope.$$watchersCount != 'undefined') {
+      incrementWatchersCount(scope, -counter);
+    }
+  }
+
+
+  function removeTemplateListeners(scope) {
+    var listeners = scope.$$listeners;
+    var $destroyListeners = listeners.$destroy;
+    if ($destroyListeners) {
+      var counter = 0;
+      for (var i = $destroyListeners.length; i--;) {
+        if (isListenerFromTemplate($destroyListeners[i])) {
+          $destroyListeners.splice(i, 1);
+          counter++;
+        }
+      }
+      if (counter) {
+        decrementListenerCount(scope, counter, '$destroy');
+      }
     }
   }
 
@@ -226,8 +346,7 @@
     while ((node = node.nextSibling)) {
       nodes.push(node);
 
-      if (node.nodeType === COMMENT_NODE &&
-          node.data === 'bs-injular-end ' + templateUrl) {
+      if (node.nodeType === COMMENT_NODE && node.data === 'bs-injular-end ' + templateUrl) {
         return nodes;
       }
     }
@@ -508,7 +627,9 @@
       function log() {
         if (logger.priority <= logLevelPriority) {
           Array.prototype.unshift.call(arguments, '[BS-Injular]');
+          /* eslint-disable no-console */
           var consoleLog = console[logLevels[logLevel]] || console.log;
+          /* eslint-enable no-console */
           Function.prototype.apply.call(consoleLog, console, arguments);
         }
       }

@@ -1,11 +1,14 @@
 'use strict';
 
 describe('directive changed listener', function() {
+  var VERSION_MINOR = angular.version.minor;
+  var DIRECTIVE_HAS_MODULE_NAME = VERSION_MINOR >= 3;
   var DIRECTIVE_CHANGED_EVENT = 'injularScript:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[DIRECTIVE_CHANGED_EVENT];
   var rootElement, warn;
 
+  /* eslint-disable no-console */
   before(function() {
     var body = angular.element(document.body);
     rootElement = angular.element('<div></div>');
@@ -26,6 +29,7 @@ describe('directive changed listener', function() {
     rootElement.remove();
     console.warn = warn;
   });
+  /* eslint-enable no-console */
 
   function throwWarningError(msg) {
     throw new Error('Warning printed: ' + msg);
@@ -272,7 +276,7 @@ describe('directive changed listener', function() {
   });
 
 
-  it('should not remove the following properties: index, $$moduleName', function() {
+  it('should not remove the following properties: index' + (DIRECTIVE_HAS_MODULE_NAME ? ', $$moduleName' : ''), function() {
     var fooDirective = {
       compile: angular.noop,
       foo: 'bar'
@@ -294,7 +298,9 @@ describe('directive changed listener', function() {
     });
 
     expect(fooDirective).to.have.property('index', 0);
-    expect(fooDirective).to.have.property('$$moduleName');
+    if (DIRECTIVE_HAS_MODULE_NAME) {
+      expect(fooDirective).to.have.property('$$moduleName');
+    }
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);
@@ -458,35 +464,37 @@ describe('directive changed listener', function() {
   });
 
 
-  it('should handle component recipe', function() {
-    var fooComponent = {
-      template: 'foo'
-    };
-    window.___bsInjular___ = {};
-    var element = angular.element('<div ng-app="app"></div>');
-    rootElement.append(element);
-    angular.bootstrap(element, ['app', provide]);
-    var $injector = element.injector();
-    var fooDirectives = $injector.get('fooDirective').slice(); // slice for copy
-    window.___bsInjular___.directivesByUrl = {'/app/foo.component.js': {foo: fooDirectives}};
+  if (VERSION_MINOR >= 5) {
+    it('should handle component recipe', function() {
+      var fooComponent = {
+        template: 'foo'
+      };
+      window.___bsInjular___ = {};
+      var element = angular.element('<div ng-app="app"></div>');
+      rootElement.append(element);
+      angular.bootstrap(element, ['app', provide]);
+      var $injector = element.injector();
+      var fooDirectives = $injector.get('fooDirective').slice(); // slice for copy
+      window.___bsInjular___.directivesByUrl = {'/app/foo.component.js': {foo: fooDirectives}};
 
-    listener({
-      scriptUrl: '/app/foo.component.js',
-      script: [
-        "angular.module('app')",
-        ".component('foo', {template: 'bar'})"
-      ].join(''),
-      recipes: ['directive']
+      listener({
+        scriptUrl: '/app/foo.component.js',
+        script: [
+          "angular.module('app')",
+          ".component('foo', {template: 'bar'})"
+        ].join(''),
+        recipes: ['directive']
+      });
+
+      expect(fooDirectives[0]).to.have.property('template', 'bar');
+      expect(fooDirectives[0]).to.have.property('controller');
+
+      function provide($provide, $compileProvider) {
+        provideRoute($provide);
+        $compileProvider.directive('foo', valueFn(fooComponent));
+        window.___bsInjular___.$compileProvider = $compileProvider;
+      }
     });
-
-    expect(fooDirectives[0]).to.have.property('template', 'bar');
-    expect(fooDirectives[0]).to.have.property('controller');
-
-    function provide($provide, $compileProvider) {
-      provideRoute($provide);
-      $compileProvider.directive('foo', valueFn(fooComponent));
-      window.___bsInjular___.$compileProvider = $compileProvider;
-    }
-  });
+  }
 
 });

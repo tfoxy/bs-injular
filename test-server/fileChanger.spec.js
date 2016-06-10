@@ -38,7 +38,7 @@ describe('fileChanger', () => {
       expect(newContent).to.endWith('<!--bs-injular-end /app/main.html-->');
     });
 
-    it('should ie8 line if supportIE8 option is true', () => {
+    it('should add ie8 line if supportIE8 option is true', () => {
       let content = '<div><span>FOO</span><span>BAR</span</div>';
       let newContent = fileChanger.wrapTemplate(content, '/app/main.html', {
         supportIE8: true

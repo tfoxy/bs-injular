@@ -1,6 +1,9 @@
 language: node_js
 node_js:
 - '4'
+before_script:
+- npm install -g bower
+- bower install
 deploy:
   provider: npm
   email: tomas.c.fox@gmail.com

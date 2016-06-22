@@ -1,9 +1,6 @@
 {
   "name": "bs-injular",
-  "main": [
-    "client/injular.js",
-    "client/file-changer.js"
-  ],
+  "main": "client/injular.js",
   "homepage": "https://github.com/tfoxy/bs-injular",
   "authors": [
     "Tomás Fox <tomas.c.fox@gmail.com>"
@@ -18,6 +15,10 @@
     "template",
     "controller"
   ],
+  "devDependencies": {
+    "angular-1.5": "angular#~1.5.7",
+    "angular-1.2": "angular#~1.2.29"
+  },
   "license": "MIT",
   "ignore": [
     "**/*",

@@ -3,6 +3,8 @@
 'use strict';
 
 module.exports = function(config) {
+  const ANGULAR_VERSION = process.env.ANGULAR_VERSION || '1.5';
+
   let props = {
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
@@ -18,7 +20,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'node_modules/angular/angular.js',
+      `bower_components/angular-${ANGULAR_VERSION}/angular.js`,
       'test-client/ngApp.js',
       'test-client/bs.js',
       'client/injular.js',

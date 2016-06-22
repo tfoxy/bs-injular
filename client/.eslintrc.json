@@ -6,9 +6,6 @@
   "env": {
     "browser": true
   },
-  "globals": {
-    "angular": false
-  },
   "rules": {
   }
 }

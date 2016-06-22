@@ -1,6 +1,8 @@
 
-(function () {
+(function newInstance(window, document) {
   'use strict';
+  document = document || window.document;
+
   var DIRECTIVE_SUFFIX = 'Directive';
   // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
   var COMMENT_NODE = 8;
@@ -29,6 +31,7 @@
   var injular = window.injular = {
     injectTemplate: injectTemplate,
     injectScript: injectScript,
+    newInstance: newInstance,
     _logger: createLogger(),
     _setLoggerPriority: setLoggerPriority
   };
@@ -61,7 +64,7 @@
 
     var localAngular = getLocalAngular($injector);
     localAngular._scriptUrl = data.scriptUrl;
-    var jsInjector = new Function('angular', data.script);
+    var jsInjector = new window.Function('angular', data.script);
     jsInjector(localAngular);
     if (data.recipes.indexOf('directive') >= 0) {
       removeDeletedDirectives($injector, data.scriptUrl);
@@ -104,7 +107,7 @@
           var directiveList = directivesByName[name].slice(removeStartIndex);
           if (directiveList.length) {
             var moduleDirectives = $injector.get(name + DIRECTIVE_SUFFIX);
-            angular.forEach(directiveList, function(directive) {
+            getAngular().forEach(directiveList, function(directive) {
               var index = moduleDirectives.indexOf(directive);
               if (index >= 0) {
                 moduleDirectives.splice(index, 1);
@@ -213,6 +216,7 @@
 
 
   function replaceTemplateInDom($injector, templateUrl, template) {
+    var angular = getAngular();
     var tw = createInjularCommentWalker(templateUrl);
     var $compile = $injector.get('$compile');
 
@@ -362,7 +366,7 @@
     var root = getAppElement();
 
     if (document.createTreeWalker) {
-      tw = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT, null, null);
+      tw = document.createTreeWalker(root, window.NodeFilter.SHOW_COMMENT, null, null);
     } else {
       // for IE8
       tw = createTreeWalker(root);
@@ -560,7 +564,7 @@
   function instantiateDirective($injector, directiveFactory, name) {
     // Code from $compileProvider.directive
     var directive = $injector.invoke(directiveFactory);
-    if (angular.isFunction(directive)) {
+    if (getAngular().isFunction(directive)) {
       directive = { compile: valueFn(directive) };
     } else if (!directive.compile && directive.link) {
       directive.compile = valueFn(directive.link);
@@ -590,12 +594,12 @@
 
 
   function throwError(msg) {
-    throw new Error('[BS-Injular] ' + msg);
+    throw new window.Error('[BS-Injular] ' + msg);
   }
 
 
   function hasOwnProperty(object, property) {
-    return Object.prototype.hasOwnProperty.call(object, property);
+    return window.Object.prototype.hasOwnProperty.call(object, property);
   }
 
 
@@ -626,11 +630,12 @@
 
       function log() {
         if (logger.priority <= logLevelPriority) {
-          Array.prototype.unshift.call(arguments, '[BS-Injular]');
+          var console = window.console;
+          window.Array.prototype.unshift.call(arguments, '[BS-Injular]');
           /* eslint-disable no-console */
           var consoleLog = console[logLevels[logLevel]] || console.log;
           /* eslint-enable no-console */
-          Function.prototype.apply.call(consoleLog, console, arguments);
+          window.Function.prototype.apply.call(consoleLog, console, arguments);
         }
       }
     }
@@ -642,4 +647,4 @@
     
     this._logger.priority = this._logger.logLevels[logLevel] || logLevel;
   }
-})();
+})(window, document);

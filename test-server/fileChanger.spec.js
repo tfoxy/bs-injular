@@ -11,8 +11,14 @@ const url = require('url');
 const noop = ()=>{};
 /* eslint-enable no-empty-function */
 
+const isArray = Array.isArray;
+
 function isString(s) {
   return typeof s === 'string';
+}
+
+function isFunction(f) {
+  return typeof f === 'function';
 }
 
 
@@ -177,7 +183,9 @@ describe('fileChanger', () => {
 
     it('should replace module.directive when evaluated and angular.module is called', () => {
       let window = {};
-      let document = {currentScript: {src: '/foo.directive.js'}};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: ()=>null}
+      };
       let directive = noop;
       let module = {
         directive
@@ -232,7 +240,9 @@ describe('fileChanger', () => {
 
     it('should call original module.directive with an array factory when new module.directive is called', () => {
       let window = {};
-      let document = {currentScript: {src: '/foo.directive.js'}};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: ()=>null}
+      };
       let directive = sinon.spy();
       let module = {
         directive
@@ -241,8 +251,9 @@ describe('fileChanger', () => {
       let angular = {
         module: moduleFn,
         injector: {$$annotate: () => []},
-        isArray: Array.isArray,
-        isString
+        isArray,
+        isString,
+        isFunction
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
@@ -255,7 +266,9 @@ describe('fileChanger', () => {
 
     it('should call original module.directive with an array factory when new module.directive is called', () => {
       let window = {};
-      let document = {currentScript: {src: '/foo.directive.js'}};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: ()=>null}
+      };
       let directive = sinon.spy();
       let module = {
         directive
@@ -264,8 +277,9 @@ describe('fileChanger', () => {
       let angular = {
         module: moduleFn,
         injector: {$$annotate: () => []},
-        isArray: Array.isArray,
-        isString
+        isArray,
+        isString,
+        isFunction
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
@@ -279,7 +293,10 @@ describe('fileChanger', () => {
     it('should patch the directive factory in order to add the directive to bsInjular.directivesByUrl', () => {
       let moduleDirectiveFactory;
       let window = {};
-      let document = {currentScript: {src: '/foo.directive.js'}, createElement};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: ()=>null},
+        createElement
+      };
       let module = {
         directive: (name, directiveFactory) => {
           moduleDirectiveFactory = directiveFactory[0];
@@ -289,18 +306,115 @@ describe('fileChanger', () => {
       let angular = {
         module: moduleFn,
         injector: {$$annotate: () => []},
-        isArray: Array.isArray,
-        isString
+        isArray,
+        isString,
+        isFunction
       };
 
       fileChanger._appendAngularModulePatchFunction(angular, window, document);
-      angular.module('app', []).directive('foo', () => 'foobar');
+      angular.module('app', []).directive('foo', () => ({foo: 'bar'}));
       let directive = moduleDirectiveFactory();
 
-      expect(directive).to.equal('foobar');
+      expect(directive).to.have.property('foo', 'bar');
       expect(window).to.have.property('___bsInjular___')
       .that.has.property('directivesByUrl')
       .that.has.property('/foo.directive.js')
+      .that.has.property('foo')
+      .that.has.property('0', directive);
+
+      function createElement() {
+        var href;
+        return {
+          set href(val) {
+            href = val;
+          },
+          get pathname() {
+            return url.parse(href).pathname;
+          }
+        };
+      }
+    });
+
+    it('should use the injular-src attribute when it is available', () => {
+      let moduleDirectiveFactory;
+      let window = {};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: attr => {
+          expect(attr).to.equal('injular-src');
+          return '/bar.directive.js';
+        }},
+        createElement
+      };
+      let module = {
+        directive: (name, directiveFactory) => {
+          moduleDirectiveFactory = directiveFactory[0];
+        }
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn,
+        injector: {$$annotate: () => []},
+        isArray,
+        isString,
+        isFunction
+      };
+
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []).directive('foo', () => ({foo: 'bar'}));
+      let directive = moduleDirectiveFactory();
+
+      expect(directive).to.have.property('foo', 'bar');
+      expect(window).to.have.property('___bsInjular___')
+      .that.has.property('directivesByUrl')
+      .that.has.property('/bar.directive.js')
+      .that.has.property('foo')
+      .that.has.property('0', directive);
+
+      function createElement() {
+        var href;
+        return {
+          set href(val) {
+            href = val;
+          },
+          get pathname() {
+            return url.parse(href).pathname;
+          }
+        };
+      }
+    });
+
+    it('should transform a postlink function directive to a regular one', () => {
+      let moduleDirectiveFactory;
+      let window = {};
+      let document = {
+        currentScript: {src: '/foo.directive.js', getAttribute: attr => {
+          expect(attr).to.equal('injular-src');
+          return '/bar.directive.js';
+        }},
+        createElement
+      };
+      let module = {
+        directive: (name, directiveFactory) => {
+          moduleDirectiveFactory = directiveFactory[0];
+        }
+      };
+      let moduleFn = () => module;
+      let angular = {
+        module: moduleFn,
+        injector: {$$annotate: () => []},
+        isArray,
+        isString,
+        isFunction
+      };
+
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      angular.module('app', []).directive('foo', () => () => {});
+      let directive = moduleDirectiveFactory();
+
+      expect(directive).to.be.an('object');
+      expect(window).to.have.property('___bsInjular___')
+      .that.has.property('directivesByUrl')
+      .that.has.property('/bar.directive.js')
       .that.has.property('foo')
       .that.has.property('0', directive);
 
@@ -326,8 +440,10 @@ describe('fileChanger', () => {
       let moduleFn = () => module;
       let angular = {
         module: moduleFn,
+        injector: {$$annotate: () => []},
+        isArray,
         isString,
-        injector: {$$annotate: () => []}
+        isFunction
       };
       let filter = () => 'foo';
       
@@ -348,8 +464,10 @@ describe('fileChanger', () => {
       let moduleFn = () => module;
       let angular = {
         module: moduleFn,
+        injector: {$$annotate: () => []},
+        isArray,
         isString,
-        injector: {$$annotate: () => []}
+        isFunction
       };
       let filter = () => 'foo';
       

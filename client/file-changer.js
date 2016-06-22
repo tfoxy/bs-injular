@@ -34,7 +34,7 @@
     options = options || {};
     var ie8Content = '';
     if (options.supportIE8) {
-      ie8Content = '\n  .directive(\'startBsInjular\', function() {\n    return {\n      restrict: \'A\',\n      compile: compile\n    };\n\n    function compile(element, attrs) {\n      console.log(\'COMPILE\')\n      var prev = element[0].previousSibling;\n      console.log(\'COMPILE \', prev)\n      if (prev && prev.nodeType === 8 && prev.data.lastIndexOf(\'bs-injular-start\', 0) === 0) {\n        console.log(\'REMOVE\')\n        element.remove();\n      } else {\n        console.log(\'REPLACE_WITH\')\n        element.replaceWith(\'<!--bs-injular-start \' + attrs.startBsInjular + \'-->\');\n      }\n      console.log(\'END_COMPILE\')\n    }\n  })';
+      ie8Content = '\n  .directive(\'startBsInjular\', function() {\n    return {\n      restrict: \'A\',\n      compile: compile\n    };\n\n    function compile(element, attrs) {\n      var prev = element[0].previousSibling;\n      if (prev && prev.nodeType === 8 && prev.data.lastIndexOf(\'bs-injular-start\', 0) === 0) {\n        element.remove();\n      } else {\n        element.replaceWith(\'<!--bs-injular-start \' + attrs.startBsInjular + \'-->\');\n      }\n    }\n  })';
     }
     var moduleNameString = JSON.stringify(moduleName);
     return body += '\n;(function() {\n  angular.module(' + moduleNameString + ')\n  .config([\n  \'$controllerProvider\', \'$compileProvider\', \'$filterProvider\',\n  function($controllerProvider, $compileProvider, $filterProvider) {\n    var bsInjular = window.___bsInjular___;\n    if (!bsInjular) {\n      bsInjular = window.___bsInjular___ = {};\n    }\n    bsInjular.$controllerProvider = $controllerProvider;\n    bsInjular.$compileProvider = $compileProvider;\n    bsInjular.$filterProvider = $filterProvider;\n  }])' + ie8Content + ';\n})();\n';
@@ -110,7 +110,8 @@
 
       var annotations = angular.injector.$$annotate(directiveFactory);
       annotations.push(function () {
-        var url = getPathname(currentScript.src);
+        var src = currentScript.getAttribute('injular-src') || currentScript.src;
+        var url = getPathname(src);
         if (!hasOwnProperty(bsInjular.directivesByUrl, url)) {
           bsInjular.directivesByUrl[url] = {};
         }
@@ -120,10 +121,31 @@
         }
         var directiveList = directivesByName[name];
         var directive = directiveFactoryFn.apply(this, arguments);
+        directive = instantiateDirective(directive, name);
         directiveList.push(directive);
         return directive;
       });
       return annotations;
+    }
+
+    function instantiateDirective(directive, name) {
+      // Code from $compileProvider.directive
+      if (angular.isFunction(directive)) {
+        directive = { compile: valueFn(directive) };
+      } else if (!directive.compile && directive.link) {
+        directive.compile = valueFn(directive.link);
+      }
+      directive.priority = directive.priority || 0;
+      directive.name = directive.name || name;
+      directive.require = directive.require || directive.controller && directive.name;
+      directive.restrict = directive.restrict || 'EA';
+      return directive;
+    }
+
+    function valueFn(value) {
+      return function () {
+        return value;
+      };
     }
 
     function patchFilterFactory(name, filterFactory) {

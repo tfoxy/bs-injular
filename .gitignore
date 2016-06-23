@@ -28,7 +28,6 @@ bower_components/
 
 
 # Coverage
-coverage/
 coverage-server/
 coverage-client/
 coverage-merged/

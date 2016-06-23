@@ -314,7 +314,7 @@ describe('template changed listener', function() {
     });
 
     expect(element.find('i').scope()).to.have.property('foo', 'foo1');
-    expect(element.find('b').scope()).to.have.property('bar', 'bar2');
+    expect(element.find('b').scope()).to.have.property('bar').that.not.equals('bar1');
     expect(element.find('b').scope()).to.have.property('fooAux', 'foo1');
 
 
@@ -643,6 +643,158 @@ describe('template changed listener', function() {
         expect($rootScope.$$listenerCount.$destroy).to.equal($destroyCount, 'afterInjection $rootScope.$$listenerCount.$destroy');
       }
     });
+  });
+
+
+  it('should remove internal directive watchers', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div bar></div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div foo></div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    var $rootScope = element.injector().get('$rootScope');
+    expect($rootScope.$$watchers.length).to.equal(1, 'beforeInjection $rootScope.$$watchers.length');
+    if (CHECK_WATCHERS_COUNT) {
+      expect($rootScope.$$watchersCount).to.equal(1, 'beforeInjection $rootScope.$$watchersCount');
+    }
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect($rootScope.$$watchers.length).to.equal(1, 'afterInjection $rootScope.$$watchers.length');
+    if (CHECK_WATCHERS_COUNT) {
+      expect($rootScope.$$watchersCount).to.equal(1, 'afterInjection $rootScope.$$watchersCount');
+    }
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('bar', function() {
+        return {
+          restrict: 'A',
+          link: function(scope) {
+            scope.$watch('bar', function() {});
+          }
+        };
+      });
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html'
+        };
+      });
+    }
+  });
+
+
+  it('should remove internal directive controller watchers', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div bar></div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div foo></div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    var $rootScope = element.injector().get('$rootScope');
+    expect($rootScope.$$watchers.length).to.equal(1, 'beforeInjection $rootScope.$$watchers.length');
+    if (CHECK_WATCHERS_COUNT) {
+      expect($rootScope.$$watchersCount).to.equal(1, 'beforeInjection $rootScope.$$watchersCount');
+    }
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect($rootScope.$$watchers.length).to.equal(1, 'afterInjection $rootScope.$$watchers.length');
+    if (CHECK_WATCHERS_COUNT) {
+      expect($rootScope.$$watchersCount).to.equal(1, 'afterInjection $rootScope.$$watchersCount');
+    }
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('bar', function() {
+        return {
+          restrict: 'A',
+          controller: function($scope) {
+            $scope.$watch('bar', function() {});
+          }
+        };
+      });
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html'
+        };
+      });
+    }
+  });
+
+
+  it('should remove internal directive listeners', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div bar></div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div foo></div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    var $rootScope = element.injector().get('$rootScope');
+    expect($rootScope.$$listeners.bar.length).to.equal(1, 'beforeInjection $rootScope.$$listeners.bar.length');
+    expect($rootScope.$$listenerCount.bar).to.equal(1, 'beforeInjection $rootScope.$$listenerCount.bar');
+
+    listener({
+      template: template,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect($rootScope.$$listeners.bar.length).to.equal(1, 'beforeInjection $rootScope.$$listeners.bar.length');
+    expect($rootScope.$$listenerCount.bar).to.equal(1, 'beforeInjection $rootScope.$$listenerCount.bar');
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('bar', function() {
+        return {
+          restrict: 'A',
+          link: function(scope) {
+            scope.$on('bar', function() {});
+          }
+        };
+      });
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html'
+        };
+      });
+    }
   });
 
 });

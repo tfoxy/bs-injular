@@ -21,7 +21,6 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       `bower_components/angular-${ANGULAR_VERSION}/angular.js`,
-      'test-client/ngApp.js',
       'test-client/bs.js',
       'client/injular.js',
       'client/**/*.js',

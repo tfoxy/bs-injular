@@ -46,12 +46,12 @@
     var $templateCache = $injector.get('$templateCache');
     var templateUrl = data.templateUrl;
     var template = data.template;
-    replaceTemplateCache($templateCache, templateUrl, template);
+    var prevTemplate = replaceTemplateCache($templateCache, templateUrl, template);
 
     if (data.reloadRoute) {
       reloadRoute($injector);
     } else {
-      replaceTemplateInDom($injector, templateUrl, template);
+      replaceTemplateInDom($injector, templateUrl, template, prevTemplate);
     }
   }
 
@@ -212,10 +212,12 @@
     $templateCache.remove(cacheUrl);
     $templateCache.put(cacheUrl, template);
     injular._logger.debug('Template cache replaced:', cacheUrl);
+
+    return cache;
   }
 
 
-  function replaceTemplateInDom($injector, templateUrl, template) {
+  function replaceTemplateInDom($injector, templateUrl, template, prevTemplate) {
     var angular = getAngular();
     var tw = createInjularCommentWalker(templateUrl);
     var $compile = $injector.get('$compile');
@@ -233,6 +235,7 @@
       destroyChildScopes(scope);
       removeTemplateWatchers(scope);
       removeTemplateListeners(scope);
+      cleanScope(scope, templateElements, prevTemplate, $compile, angular);
 
       injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       templateElements.replaceWith(newTemplateElements);
@@ -243,6 +246,72 @@
       });
 
       injular._logger.debug('Template applied:', templateUrl);
+    }
+  }
+
+
+  function cleanScope(scope, templateElements, template, $compile, angular) {
+    var addedWatchers = [];
+    var addedListeners = {};
+    var $watch = scope.$watch;
+    var $on = scope.$on;
+    scope.$watch = watcherInterceptor;
+    scope.$on = listenerInterceptor;
+    var auxTemplateElements = angular.element(template);
+    templateElements.replaceWith(auxTemplateElements);
+    scope.$apply(function(scope) {
+      $compile(template)(scope);
+    });
+    destroyChildScopes(scope);
+    angular.forEach(addedWatchers, function(watcher) {
+      for (var i = 0; i < scope.$$watchers.length; i++) {
+        var scopeWatcher = scope.$$watchers[i];
+        if (
+          watcher.fn.toString() === scopeWatcher.fn.toString() &&
+          watcher.exp.toString() === scopeWatcher.exp.toString() &&
+          watcher.eq === watcher.eq
+        ) {
+          scope.$$watchers.splice(i, 1);
+          incrementWatchersCount(scope, -1);
+          break;
+        }
+      }
+    });
+    angular.forEach(addedListeners, function(listeners, name) {
+      var namedListeners = scope.$$listeners[name];
+      if (!namedListeners) return;
+      angular.forEach(listeners, function(listener) {
+        for (var i = 0; i < namedListeners.length; i++) {
+          var namedListener = namedListeners[i];
+          if (namedListener && namedListener.toString() === listener.toString()) {
+            namedListeners.splice(i, 1);
+            decrementListenerCount(scope, 1, name);
+            break;
+          }
+        }
+      });
+    });
+    auxTemplateElements.replaceWith(templateElements);
+    scope.$watch = $watch;
+    scope.$on = $on;
+
+    function watcherInterceptor() {
+      var deregister = $watch.apply(this, arguments);
+      addedWatchers.push(scope.$$watchers[0]);
+      deregister();
+      return deregister;
+    }
+
+    function listenerInterceptor(name, listener) {
+      var deregister = $on.apply(this, arguments);
+      var namedListeners = addedListeners[name];
+      if (!namedListeners) {
+        namedListeners = addedListeners[name] = [];
+      }
+      namedListeners.push(listener);
+      deregister();
+      scope.$$listeners[name].pop();
+      return deregister;
     }
   }
 

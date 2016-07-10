@@ -449,6 +449,95 @@ describe('template changed listener', function() {
   });
 
 
+  it('should inject multiple templates inside an ng-repeat', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<span>FOO</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div ng-repeat="i in [1,2]">',
+      '<div foo></div>',
+      '</div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    expect(element.text()).to.equal('FOOFOO');
+
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<span>BAR</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.text()).to.equal('BARBAR');
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html'
+        };
+      });
+    }
+  });
+
+
+  it('should inject multiple nested templates inside an ng-repeat', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div ng-if="nest" foo="false"></div>',
+      '<span ng-if="!nest">FOO</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="app">',
+      '<div ng-repeat="i in [1,2]">',
+      '<div foo="true"></div>',
+      '</div>',
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provideDirective]);
+    expect(element.text()).to.equal('FOOFOO');
+
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div ng-if="nest" foo="false"></div>',
+      '<span ng-if="!nest">BAR</span>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/foo.html'
+    });
+
+    expect(element.text()).to.equal('BARBAR');
+
+
+    function provideDirective($compileProvider) {
+      $compileProvider.directive('foo', function($templateCache) {
+        $templateCache.put('/app/foo.html', template);
+        return {
+          restrict: 'A',
+          templateUrl: '/app/foo.html',
+          scope: { nest: '=foo' }
+        };
+      });
+    }
+  });
+
+
   it('should preserve the template scope', function() {
     var template = [
       '<!--bs-injular-start /app/foo.html-->',

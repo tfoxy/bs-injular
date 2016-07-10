@@ -6,6 +6,9 @@
   var DIRECTIVE_SUFFIX = 'Directive';
   // Node.COMMENT_NODE === 8 . IE8 does not implement the Node interface
   var COMMENT_NODE = 8;
+  // NodeFilter.FILTER_ACCEPT === 1 . IE8 does not implement the Node interface
+  var FILTER_ACCEPT = 1;
+
   var TEMPLATE_WATCHERS = [
     {fn: 'watchGroupAction', get: 'expressionInputWatch'},  // binding
     {fn: 'watchGroupSubAction', get: 'expressionInputWatch'},  // multiple bindings
@@ -246,6 +249,8 @@
       });
 
       injular._logger.debug('Template applied:', templateUrl);
+
+      tw.currentNode = newTemplateElements.eq(-1)[0];
     }
   }
 
@@ -431,64 +436,77 @@
 
 
   function createInjularCommentWalker(templateUrl) {
-    var tw, node;
+    var tw;
     var root = getAppElement();
 
     if (document.createTreeWalker) {
-      tw = document.createTreeWalker(root, window.NodeFilter.SHOW_COMMENT, null, null);
+      tw = document.createTreeWalker(root, window.NodeFilter.SHOW_COMMENT, filter);
     } else {
       // for IE8
-      tw = createTreeWalker(root);
+      tw = createTreeWalker(root, undefined, filter);
     }
 
-    return {
-      nextNode: nextNode
-    };
+    return tw;
 
-    function nextNode() {
-      while ((node = tw.nextNode())) {
-        if ((
-            node.nodeType === COMMENT_NODE &&
-            node.data === 'bs-injular-start ' + templateUrl
-            ) || (
-            node.nodeType === 1 &&
-            node.getAttribute('start-bs-injular') === templateUrl)
-            ) {
-          return node;
-        }
+    function filter(node) {
+      if ((
+          node.nodeType === COMMENT_NODE &&
+          node.data === 'bs-injular-start ' + templateUrl
+          ) || (
+          node.nodeType === 1 &&
+          node.getAttribute('start-bs-injular') === templateUrl)
+          ) {
+        return FILTER_ACCEPT;
       }
-      return node;
     }
   }
 
 
-  function createTreeWalker(root) {
-    var node = root;
+  function createTreeWalker(root, whatToShow, filter) {
     var stack = [];
-    return {
-      nextNode: nextNode
+    var tw = {
+      nextNode: filter ? nextNodeWithFilter : nextNode,
+      currentNode: root
     };
+    return tw;
+
+    function nextNodeWithFilter() {
+      var auxNode;
+      while ((auxNode = nextNode())) {
+        if (filter(auxNode) === FILTER_ACCEPT) {
+          break;
+        }
+      }
+      return auxNode;
+    }
 
     function nextNode() {
+      var node = auxNextNode(tw.currentNode);
+      if (node) {
+        tw.currentNode = node;
+      }
+      return node;
+    }
+
+    function auxNextNode(node) {
       if (!node) return null;
 
       var childNodes = node.childNodes;
       if (childNodes && childNodes.length) {
-        if (node.nextSibling) {
-          stack.push(node);
-        }
         node = childNodes[0];
         return node;
       }
 
-      node = node.nextSibling;
-      if (node) return node;
+      var auxNode = node.nextSibling;
+      if (auxNode) return auxNode;
 
-      node = stack.pop();
-      if (!node) return null;
+      do {
+        node = node.parentNode;
+        if (!node) return null;
+        auxNode = node.nextSibling;
+      } while (!auxNode);
 
-      node = node.nextSibling;
-      return node;
+      return auxNode;
     }
   }
 

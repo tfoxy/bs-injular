@@ -97,7 +97,7 @@ module.exports = function(config) {
         ]
       }
     });
-    props.reporters.push('reporters');
+    props.reporters.push('coverage');
   }
   if (process.env.NO_BROWSERS) {
     props.browsers = [];

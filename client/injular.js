@@ -463,7 +463,6 @@
 
 
   function createTreeWalker(root, whatToShow, filter) {
-    var stack = [];
     var tw = {
       nextNode: filter ? nextNodeWithFilter : nextNode,
       currentNode: root

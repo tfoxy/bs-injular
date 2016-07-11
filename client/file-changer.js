@@ -77,12 +77,12 @@
           console.warn('[BS-Injular] No currentScript for directive: ' + name);
           /* eslint-enable no-console */
         } else if (angular.isString(name)) {
-            directiveFactory = patchDirectiveFactory(name, directiveFactory, currentScript);
-          } else {
-            angular.forEach(name, function (value, key) {
-              name[key] = patchDirectiveFactory(key, value, currentScript);
-            });
-          }
+          directiveFactory = patchDirectiveFactory(name, directiveFactory, currentScript);
+        } else {
+          angular.forEach(name, function (value, key) {
+            name[key] = patchDirectiveFactory(key, value, currentScript);
+          });
+        }
 
         return directiveFn.call(this, name, directiveFactory);
       }

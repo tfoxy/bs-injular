@@ -216,7 +216,12 @@
     $templateCache.put(cacheUrl, template);
     injular._logger.debug('Template cache replaced:', cacheUrl);
 
-    return cache;
+    var prevTemplate = cache;
+    if (window.Array.isArray(cache) && cache.length > 1 && typeof cache[1] === 'string') {
+      prevTemplate = cache[1];
+    }
+
+    return prevTemplate;
   }
 
 

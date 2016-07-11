@@ -236,9 +236,13 @@
       var templateElements = angular.element(templateNodes);
       var scope = templateElements.scope();
       destroyChildScopes(scope);
-      removeTemplateWatchers(scope);
-      removeTemplateListeners(scope);
-      cleanScope(scope, templateElements, prevTemplate, $compile, angular);
+      if (isScopeProxified(scope)) {
+        deregisterListenersFromScope(scope, angular);
+      } else {
+        removeTemplateWatchers(scope);
+        removeTemplateListeners(scope);
+        cleanScope(scope, templateElements, prevTemplate, $compile, angular);
+      }
 
       injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       templateElements.replaceWith(newTemplateElements);
@@ -252,6 +256,35 @@
 
       tw.currentNode = newTemplateElements.eq(-1)[0];
     }
+  }
+
+
+  function isScopeProxified(scope) {
+    return !!scope.$$$injularDeregisters;
+  }
+
+
+  function deregisterListenersFromScope(scope, angular) {
+    angular.forEach(scope.$$$injularDestroyListeners, function(listener) {
+      listener();
+    });
+    angular.forEach(scope.$$$injularDeregisters, function(deregister) {
+      deregister();
+    });
+    scope.$$$injularDestroyListeners.length = 0;
+    scope.$$$injularDeregisters.length = 0;
+    cleanDeregisteredListeners(scope, angular);
+  }
+
+
+  function cleanDeregisteredListeners(scope, angular) {
+    angular.forEach(scope.$$listeners, function(namedListeners) {
+      for (var i = namedListeners.length; i--;) {
+        if (namedListeners[i] == null) {
+          namedListeners.splice(i, 1);
+        }
+      }
+    });
   }
 
 

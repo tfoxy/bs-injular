@@ -17,6 +17,7 @@
     wrapTemplate: wrapTemplate,
     appendProvideGetter: appendProvideGetter,
     appendAngularModulePatch: appendAngularModulePatch,
+    _proxifyScopeFromCompile: _proxifyScopeFromCompile,
     _appendAngularModulePatchFunction: _appendAngularModulePatchFunction
   };
 
@@ -37,11 +38,66 @@
       ie8Content = '\n  .directive(\'startBsInjular\', function() {\n    return {\n      restrict: \'A\',\n      compile: compile\n    };\n\n    function compile(element, attrs) {\n      var prev = element[0].previousSibling;\n      if (prev && prev.nodeType === 8 && prev.data.lastIndexOf(\'bs-injular-start\', 0) === 0) {\n        element.remove();\n      } else {\n        element.replaceWith(\'<!--bs-injular-start \' + attrs.startBsInjular + \'-->\');\n      }\n    }\n  })';
     }
     var moduleNameString = JSON.stringify(moduleName);
-    return body += '\n;(function() {\n  angular.module(' + moduleNameString + ')\n  .config([\n  \'$controllerProvider\', \'$compileProvider\', \'$filterProvider\',\n  function($controllerProvider, $compileProvider, $filterProvider) {\n    var bsInjular = window.___bsInjular___;\n    if (!bsInjular) {\n      bsInjular = window.___bsInjular___ = {};\n    }\n    bsInjular.$controllerProvider = $controllerProvider;\n    bsInjular.$compileProvider = $compileProvider;\n    bsInjular.$filterProvider = $filterProvider;\n  }])' + ie8Content + ';\n})();\n';
+    return body += '\n;(function() {\n  angular.module(' + moduleNameString + ')\n  .config([\n  \'$controllerProvider\', \'$compileProvider\', \'$filterProvider\',\n  function($controllerProvider, $compileProvider, $filterProvider) {\n    var bsInjular = window.___bsInjular___;\n    if (!bsInjular) {\n      bsInjular = window.___bsInjular___ = {};\n    }\n    bsInjular.$controllerProvider = $controllerProvider;\n    bsInjular.$compileProvider = $compileProvider;\n    bsInjular.$filterProvider = $filterProvider;\n    if (window.Proxy) {\n      (' + _proxifyScopeFromCompile + ')(window, $compileProvider.$get);\n    }\n  }])' + ie8Content + ';\n})();\n';
   }
 
   function appendAngularModulePatch(body) {
     return body += '\n;(' + _appendAngularModulePatchFunction + ')(angular, window, document);\n';
+  }
+
+  function _proxifyScopeFromCompile(window, $compileProvider) {
+    var index = $compileProvider.$get.length - 1;
+    var $compileProviderGet = $compileProvider.$get[index];
+    $compileProvider.$get[index] = $injularCompileProviderGet;
+
+    function $injularCompileProviderGet() {
+      var $compile = $compileProviderGet.apply(this, arguments);
+      return $injularCompile;
+
+      function $injularCompile(elements) {
+        var linkScopeFn = $compile.apply(this, arguments);
+        if (typeof elements === 'object' && elements[0] && /^bs-injular-start /.test(elements[0].data)) {
+          return injularLinkScope;
+        } else {
+          return linkScopeFn;
+        }
+
+        function injularLinkScope(scope) {
+          var proxyScope = new window.Proxy(scope, {
+            get: get
+          });
+          scope.$$$injularDeregisters = scope.$$$injularDeregisters || [];
+          scope.$$$injularDestroyListeners = scope.$$$injularDestroyListeners || [];
+          arguments[0] = proxyScope;
+          return linkScopeFn.apply(this, arguments);
+
+          function get(target, name) {
+            var val = target[name];
+            if (name === '$on') {
+              return $injularOn;
+            } else if (name === '$watch') {
+              return $injularWatch;
+            }
+            return val;
+
+            function $injularOn(name, listener) {
+              var deregister = val.apply(this, arguments);
+              scope.$$$injularDeregisters.push(deregister);
+              if (name === '$destroy') {
+                scope.$$$injularDestroyListeners.push(listener);
+              }
+              return deregister;
+            }
+
+            function $injularWatch() {
+              var deregister = val.apply(this, arguments);
+              scope.$$$injularDeregisters.push(deregister);
+              return deregister;
+            }
+          }
+        }
+      }
+    }
   }
 
   function _appendAngularModulePatchFunction(angular, window, document) {
@@ -77,12 +133,12 @@
           console.warn('[BS-Injular] No currentScript for directive: ' + name);
           /* eslint-enable no-console */
         } else if (angular.isString(name)) {
-            directiveFactory = patchDirectiveFactory(name, directiveFactory, currentScript);
-          } else {
-            angular.forEach(name, function (value, key) {
-              name[key] = patchDirectiveFactory(key, value, currentScript);
-            });
-          }
+          directiveFactory = patchDirectiveFactory(name, directiveFactory, currentScript);
+        } else {
+          angular.forEach(name, function (value, key) {
+            name[key] = patchDirectiveFactory(key, value, currentScript);
+          });
+        }
 
         return directiveFn.call(this, name, directiveFactory);
       }

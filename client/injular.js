@@ -246,7 +246,7 @@
       cleanScope(scope, templateElements, prevTemplate, $compile, angular);
 
       injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
-      templateElements.replaceWith(newTemplateElements);
+      replaceWith(templateElements, newTemplateElements);
 
       injular._logger.debug('Applying scope:', scope);
       scope.$apply(function(scope) {
@@ -268,7 +268,7 @@
     scope.$watch = watcherInterceptor;
     scope.$on = listenerInterceptor;
     var auxTemplateElements = angular.element(template);
-    templateElements.replaceWith(auxTemplateElements);
+    replaceWith(templateElements, auxTemplateElements);
     scope.$apply(function(scope) {
       $compile(template)(scope);
     });
@@ -301,7 +301,7 @@
         }
       });
     });
-    auxTemplateElements.replaceWith(templateElements);
+    replaceWith(auxTemplateElements, templateElements);
     scope.$watch = $watch;
     scope.$on = $on;
 
@@ -673,6 +673,27 @@
       if (key !== 'index' && key !== '$$moduleName') {
         delete directive[key];
       }
+    }
+  }
+
+
+  /* jQuery replaceWith behaves differently than JQLite replaceWith */
+  function replaceWith(elements, replaceNode) {
+    var angular = getAngular();
+    if (getFunctionName(angular.element) === 'JQLite') {
+      return elements.replaceWith(replaceNode);
+    }
+    for (var i = 0, ii = elements.length; i < ii; i++) {
+      var element = elements[i];
+      var index = null, parent = element.parentNode;
+      angular.forEach(angular.element(replaceNode), function(node) {
+        if (index) {
+          parent.insertBefore(node, index.nextSibling);
+        } else {
+          parent.replaceChild(node, element);
+        }
+        index = node;
+      });
     }
   }
 

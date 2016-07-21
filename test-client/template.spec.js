@@ -1,5 +1,7 @@
 'use strict';
 
+/* global jQuery */
+
 describe('template changed listener', function() {
   var VERSION_MINOR = angular.version.minor;
   var TEMPLATE_CHANGED_EVENT = 'injularTemplate:changed';
@@ -380,5 +382,58 @@ describe('template changed listener', function() {
       }
     });
   }
+
+
+  describe('with jQuery', function() {
+    var originalAngularElement;
+
+    before(function() {
+      var JQLitePrototype = angular.element.prototype;
+      originalAngularElement = angular.element;
+      angular.element = jQuery;
+      angular.extend(jQuery.fn, {
+        scope: JQLitePrototype.scope,
+        isolateScope: JQLitePrototype.isolateScope,
+        controller: JQLitePrototype.controller,
+        injector: JQLitePrototype.injector,
+        inheritedData: JQLitePrototype.inheritedData
+      });
+    });
+
+    after(function() {
+      angular.element = originalAngularElement;
+    });
+
+    it('should not duplicate templates', function() {
+      var template = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<div>FOO</div>',
+        '<div>FOO</div>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
+      var element = angular.element([
+        '<div ng-app="app">',
+        template,
+        '</div>'
+      ].join(''));
+      rootElement.append(element);
+      angular.bootstrap(element);
+      element.injector().get('$templateCache').put('/app/foo.html', template);
+
+      var newTemplate = [
+        '<!--bs-injular-start /app/foo.html-->',
+        '<span>BAR</span>',
+        '<span>BAR</span>',
+        '<!--bs-injular-end /app/foo.html-->'
+      ].join('');
+      listener({
+        template: newTemplate,
+        templateUrl: '/app/foo.html'
+      });
+      expect(element.text()).to.equal('BARBAR');
+      expect(element.children()).to.have.length(2);
+    });
+
+  });
 
 });

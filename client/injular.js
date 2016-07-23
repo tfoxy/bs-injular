@@ -31,6 +31,9 @@
     {fn: 'ngSwitchWatchAction', get: ''}  // ng-switch
   ];
 
+  var anchor = document.createElement('a');
+  var basePath = getBasePath();
+
   var injular = window.injular = {
     injectTemplate: injectTemplate,
     injectScript: injectScript,
@@ -63,14 +66,19 @@
     injular._setLoggerPriority(data.logLevel);
     injular._logger.debug('injectScript', data);
     
+    var hasDirective = data.recipes.indexOf('directive') >= 0;
     var $injector = getInjector();
 
+    var scriptUrl = data.scriptUrl;
+    if (hasDirective) {
+      scriptUrl = getValidScriptUrl(scriptUrl);
+    }
     var localAngular = getLocalAngular($injector);
-    localAngular._scriptUrl = data.scriptUrl;
+    localAngular._scriptUrl = scriptUrl;
     var jsInjector = new window.Function('angular', data.script);
     jsInjector(localAngular);
-    if (data.recipes.indexOf('directive') >= 0) {
-      removeDeletedDirectives($injector, data.scriptUrl);
+    if (hasDirective) {
+      removeDeletedDirectives($injector, scriptUrl);
     }
 
     reloadRoute($injector);
@@ -88,6 +96,42 @@
     }
 
     return bsInjular;
+  }
+
+
+  function getBasePath() {
+    anchor.href = document.baseURI;
+    var path = anchor.pathname;
+    var index = path.lastIndexOf('/');
+    return path.slice(0, index + 1);
+  }
+
+
+  function getValidScriptUrl(url) {
+    /* TODO test all cases */
+    var bsInjular = getBsInjular();
+    var directivesByUrl = bsInjular.directivesByUrl;
+    if (!directivesByUrl) {
+      return url;
+    }
+    var scriptUrl = url;
+    if (url.charAt(0) !== '/') {
+      scriptUrl = '/' + url;
+    }
+    if (hasOwnProperty(directivesByUrl, scriptUrl)) {
+      return scriptUrl;
+    }
+    var prevUrl = scriptUrl;
+    anchor.pathname = basePath + url;
+    scriptUrl = anchor.pathname.replace(/\/+/g, '/');
+    if (hasOwnProperty(directivesByUrl, scriptUrl)) {
+      return scriptUrl;
+    }
+    injular._logger.error(
+      'No directives for urls:', [prevUrl, scriptUrl], ' . Possible urls:',
+      objectKeys(directivesByUrl)
+    );
+    throwError('No directives for given script url');
   }
 
 
@@ -120,7 +164,10 @@
         }
       }
     } else {
-      injular._logger.error('No directives for url:', scriptUrl);
+      injular._logger.error(
+        'No directives for url:', scriptUrl, ' . Possible urls:',
+        objectKeys(directivesByUrl)
+      );
     }
   }
 
@@ -604,7 +651,10 @@
           });
         }
       } else {
-        injular._logger.error('No directives for url:', localAngular._scriptUrl);
+        injular._logger.error(
+          'No directives for url:', localAngular._scriptUrl, ' . Possible urls:',
+          objectKeys(directivesByUrl)
+        );
       }
 
       return this;
@@ -694,6 +744,22 @@
         }
         index = node;
       });
+    }
+  }
+
+
+  /* IE8 does not have Object.keys */
+  function objectKeys(obj) {
+    if (Object.keys) {
+      return Object.keys(obj);
+    } else {
+      var keys = [];
+      for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+          keys.push(i);
+        }
+      }
+      return keys;
     }
   }
 

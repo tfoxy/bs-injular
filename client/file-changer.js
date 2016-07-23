@@ -36,7 +36,7 @@
     if (options.supportIE8) {
       ie8Content = '\n  .directive(\'startBsInjular\', function() {\n    return {\n      restrict: \'A\',\n      compile: compile\n    };\n\n    function compile(element, attrs) {\n      var prev = element[0].previousSibling;\n      if (prev && prev.nodeType === 8 && prev.data.lastIndexOf(\'bs-injular-start\', 0) === 0) {\n        element.remove();\n      } else {\n        element.replaceWith(\'<!--bs-injular-start \' + attrs.startBsInjular + \'-->\');\n      }\n    }\n  })';
     }
-    var moduleNameString = JSON.stringify(moduleName);
+    var moduleNameString = moduleName ? JSON.stringify(moduleName) : 'document.querySelector(\'[ng-app]\').getAttribute(\'ng-app\')';
     return body += '\n;(function() {\n  angular.module(' + moduleNameString + ')\n  .config([\n  \'$controllerProvider\', \'$compileProvider\', \'$filterProvider\',\n  function($controllerProvider, $compileProvider, $filterProvider) {\n    var bsInjular = window.___bsInjular___;\n    if (!bsInjular) {\n      bsInjular = window.___bsInjular___ = {};\n    }\n    bsInjular.$controllerProvider = $controllerProvider;\n    bsInjular.$compileProvider = $compileProvider;\n    bsInjular.$filterProvider = $filterProvider;\n  }])' + ie8Content + ';\n})();\n';
   }
 

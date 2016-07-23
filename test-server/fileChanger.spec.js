@@ -35,13 +35,13 @@ describe('fileChanger', () => {
     it('should add a header comment to the content', () => {
       let content = '<div><span>FOO</span><span>BAR</span</div>';
       let newContent = fileChanger.wrapTemplate(content, '/app/main.html');
-      expect(newContent).to.startWith('<!--bs-injular-start /app/main.html-->');
+      expect(newContent).to.startWith('<!--bs-injular-start /app/main.html--><');
     });
 
     it('should add a footer comment to the content', () => {
       let content = '<div><span>FOO</span><span>BAR</span</div>';
       let newContent = fileChanger.wrapTemplate(content, '/app/main.html');
-      expect(newContent).to.endWith('<!--bs-injular-end /app/main.html-->');
+      expect(newContent).to.endWith('><!--bs-injular-end /app/main.html-->');
     });
 
     it('should add ie8 line if supportIE8 option is true', () => {

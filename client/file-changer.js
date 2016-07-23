@@ -27,7 +27,7 @@
     if (options.supportIE8) {
       ie8Content = '<!--[if lt IE 9]><b style="display:none!important" start-bs-injular="' + url + '"></b><![endif]-->';
     }
-    return '<!--bs-injular-start ' + url + '-->' + ie8Content + '\n' + body + '\n<!--bs-injular-end ' + url + '-->';
+    return '<!--bs-injular-start ' + url + '-->' + ie8Content + body + '<!--bs-injular-end ' + url + '-->';
   }
 
   function appendProvideGetter(body, moduleName, options) {

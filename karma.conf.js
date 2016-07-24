@@ -20,6 +20,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      require.resolve('chai-string'),
       `bower_components/angular-${ANGULAR_VERSION}/angular.js`,
       require.resolve('jquery'),
       'test-client/bs.js',
@@ -87,7 +88,7 @@ module.exports = function(config) {
       // preprocess matching files before serving them to the browser
       // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
       preprocessors: {
-        'client/**/!(file-changer).js': ['coverage']
+        'client/**/*.js': ['coverage']
       },
 
       coverageReporter: {

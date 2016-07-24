@@ -1,6 +1,6 @@
 'use strict';
 
-describe('controller changed listener', function() {
+describe('filter changed listener', function() {
   var CONTROLLER_CHANGED_EVENT = 'injularScript:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[CONTROLLER_CHANGED_EVENT];

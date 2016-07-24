@@ -61,11 +61,12 @@
     function bsInjularModule() {
       var directiveFn, filterFn;
       var module = moduleFn.apply(this, arguments);
-      if (arguments.length > 1) {
+      if (!module.___injular___) {
         directiveFn = module.directive;
         filterFn = module.filter;
         module.directive = bsInjularAngularDirective;
         module.filter = bsInjularFilterDirective;
+        module.___injular___ = true;
       }
       return module;
 

@@ -83,7 +83,7 @@ module.exports = function(config) {
         }
       }
     });
-  } else if (!process.env.NO_COVERAGE) {
+  } else if (process.env.COVERAGE) {
     Object.assign(props, {
       // preprocess matching files before serving them to the browser
       // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor

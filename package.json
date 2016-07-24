@@ -7,7 +7,7 @@
     "test": "npm run lint && npm run test:server && npm run test:client && npm run test:merged",
     "lint": "eslint .",
     "test:server": "istanbul cover _mocha --dir coverage-server --report text-summary --report json -x test-server/**/* -x lib/fileChanger.js test-server",
-    "test:client": "karma start --single-run && NO_COVERAGE=1 ANGULAR_VERSION='1.2' karma start --single-run",
+    "test:client": "COVERAGE=1 karma start --single-run && ANGULAR_VERSION='1.2' karma start --single-run",
     "test:merged": "istanbul report --dir coverage-merged lcov text-summary",
     "build": "babel lib/fileChanger.js -o client/file-changer.js",
     "watch": "npm-watch"

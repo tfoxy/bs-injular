@@ -49,6 +49,22 @@ describe('middlewareFactory', () => {
       expect(res._body).to.not.endWith(body);
     });
 
+    it('should tamper the directive file when matching the pattern', () => {
+      config.directives = '/app/**/*.directive.js';
+      let middleware = middlewareFactory(config);
+      let req = new Request('/app/foo.directive.js');
+      let res = new Response();
+      let next = sinon.spy();
+      middleware(req, res, next);
+      expect(next).to.have.callCount(1);
+
+      let body = `(function(){'foo'})`;
+      res.writeHead();
+      res.end(body);
+      expect(res._body).to.include(body);
+      expect(res._body).to.not.equal(body);
+    });
+
     it('should tamper the module file when matching the pattern', () => {
       config.moduleFile = '/app/index.module.js';
       config.ngApp = 'fooApp';

@@ -36,8 +36,14 @@ describe('listenToFileChange', () => {
   });
 
   describe('listener', () => {
+    let appFs = {
+      'foo.html': '<div>BAR</div>',
+      'foo.controller.js': `angular.module("app").controller('foo', function(){})`,
+      'foo.directive.js': `angular.module("app").directive('foo', function(){return {};})`
+    };
     let templateEvent;
     let controllerEvent;
+    let directiveEvent;
     let config;
 
     beforeEach(() => {
@@ -51,21 +57,25 @@ describe('listenToFileChange', () => {
         event: 'change',
         namespace: 'core'
       };
+      directiveEvent = {
+        path: '/home/user/my-repo/app/foo.directive.js',
+        event: 'change',
+        namespace: 'core'
+      };
       config = {
         emitNotify: sinon.spy(),
         logger: createLogger(),
         templates: '/app/**/*.html',
         controllers: '/app/**/*.controller.js',
+        directives: '/app/**/*.directive.js',
         moduleFile: '/app/foo.module.js',
         ngApp: 'app',
-        matchedModuleFile: '/app/foo.module.js'
+        matchedModuleFile: '/app/foo.module.js',
+        matchedAngularFile: '/angular.js'
       };
 
       mockFs({
-        '/home/user/my-repo/app': {
-          'foo.html': '<div>BAR</div>',
-          'foo.controller.js': 'angular.module("app").controller(function(){})'
-        }
+        '/home/user/my-repo/app': appFs
       });
     });
 
@@ -78,13 +88,22 @@ describe('listenToFileChange', () => {
       bs.emitter.emit('file:changed', templateEvent);
     });
 
-    it('should emit "injularTemplate:changed" when changing a css file', () => {
+    it('should emit "injularTemplate:changed" when changing an html file', () => {
       bs.options = bs.options.setIn(['server', 'baseDir'], '.');
       listenToFileChange(config, bs);
       sinon.spy(bs.io.sockets, 'emit');
       bs.emitter.emit('file:changed', templateEvent);
       expect(bs.io.sockets.emit).to.have.callCount(1)
         .and.to.have.been.calledWith('injularTemplate:changed');
+    });
+
+    it('should change template when "injularTemplate:changed" is emitted', () => {
+      bs.options = bs.options.setIn(['server', 'baseDir'], '.');
+      listenToFileChange(config, bs);
+      sinon.spy(bs.io.sockets, 'emit');
+      bs.emitter.emit('file:changed', templateEvent);
+      expect(bs.io.sockets.emit.args[0][1]).to.have.property('template')
+        .that.not.equals(appFs['foo.html']);
     });
 
     it('should emit "injularScript:changed" when changing a js file', () => {
@@ -94,6 +113,15 @@ describe('listenToFileChange', () => {
       bs.emitter.emit('file:changed', controllerEvent);
       expect(bs.io.sockets.emit).to.have.callCount(1)
         .and.to.have.been.calledWith('injularScript:changed');
+    });
+
+    it('should change script when "injularTemplate:changed" is emitted with directive event', () => {
+      bs.options = bs.options.setIn(['server', 'baseDir'], '.');
+      listenToFileChange(config, bs);
+      sinon.spy(bs.io.sockets, 'emit');
+      bs.emitter.emit('file:changed', directiveEvent);
+      expect(bs.io.sockets.emit.args[0][1]).to.have.property('script')
+        .that.not.equals(appFs['foo.directive.js']);
     });
 
     it('should log error when changing a js file and no module file was matched', () => {

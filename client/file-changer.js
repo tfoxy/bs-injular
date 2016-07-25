@@ -15,6 +15,7 @@
 
   module.exports = {
     wrapTemplate: wrapTemplate,
+    wrapDirectiveFile: wrapDirectiveFile,
     appendProvideGetter: appendProvideGetter,
     appendAngularModulePatch: appendAngularModulePatch,
     _appendAngularModulePatchFunction: _appendAngularModulePatchFunction
@@ -28,6 +29,10 @@
       ie8Content = '<!--[if lt IE 9]><b style="display:none!important" start-bs-injular="' + url + '"></b><![endif]-->';
     }
     return '<!--bs-injular-start ' + url + '-->' + ie8Content + body + '<!--bs-injular-end ' + url + '-->';
+  }
+
+  function wrapDirectiveFile(content) {
+    return 'window.___bsInjular___.addScriptUrlToDirectives();' + content;
   }
 
   function appendProvideGetter(body, moduleName, options) {
@@ -51,6 +56,7 @@
     }
     bsInjular.directivesByUrl = {};
     bsInjular.filtersCache = {};
+    bsInjular.addScriptUrlToDirectives = addScriptUrlToDirectives;
 
     var moduleFn = angular.module;
     angular.module = bsInjularModule;
@@ -113,10 +119,10 @@
       annotations.push(function () {
         var src = currentScript.getAttribute('injular-src') || currentScript.src;
         var url = getPathname(src);
-        if (!hasOwnProperty(bsInjular.directivesByUrl, url)) {
-          bsInjular.directivesByUrl[url] = {};
-        }
         var directivesByName = bsInjular.directivesByUrl[url];
+        if (!directivesByName) {
+          throw new window.Error('[BS-Injular] No directives found for url: ' + url);
+        }
         if (!hasOwnProperty(directivesByName, name)) {
           directiveList = directivesByName[name] = [];
         }
@@ -159,6 +165,15 @@
       };
     }
 
+    function addScriptUrlToDirectives() {
+      var currentScript = document.currentScript || alternativeCurrentScript();
+      var src = currentScript.getAttribute('injular-src') || currentScript.src;
+      var url = getPathname(src);
+      if (!hasOwnProperty(bsInjular.directivesByUrl, url)) {
+        bsInjular.directivesByUrl[url] = {};
+      }
+    }
+
     function getPathname(url) {
       var anchor = document.createElement('a');
       anchor.href = url;
@@ -176,7 +191,7 @@
     }
 
     function hasOwnProperty(object, property) {
-      return Object.prototype.hasOwnProperty.call(object, property);
+      return window.Object.prototype.hasOwnProperty.call(object, property);
     }
   }
 });

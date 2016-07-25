@@ -215,7 +215,8 @@ describe('directive changed listener', function() {
       compile: angular.noop,
       foo: 'bar'
     };
-    window.___bsInjular___ = {directivesByUrl: {'/app/foo.directive.js': {foo: [fooDirective]}}};
+    var directiveList = [fooDirective];
+    window.___bsInjular___ = {directivesByUrl: {'/app/foo.directive.js': {foo: directiveList}}};
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
@@ -228,6 +229,7 @@ describe('directive changed listener', function() {
 
     var $injector = element.injector();
     expect($injector.get('fooDirective')).to.have.length(0);
+    expect(directiveList).to.have.length(0);
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);
@@ -245,10 +247,11 @@ describe('directive changed listener', function() {
       compile: angular.noop,
       foo: 'foo2'
     };
+    var directiveList = [fooDirective, fooDirective2];
     window.___bsInjular___ = {
       directivesByUrl: {
         '/app/foo.directive.js': {
-          foo: [fooDirective, fooDirective2]
+          foo: directiveList
         }
       }
     };
@@ -267,6 +270,7 @@ describe('directive changed listener', function() {
 
     var $injector = element.injector();
     expect($injector.get('fooDirective')).to.have.length(1);
+    expect(directiveList).to.have.length(1);
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);
@@ -401,7 +405,7 @@ describe('directive changed listener', function() {
   });
 
 
-  it('should remove a directive related only to the modified file, if its was removed from it', function() {
+  it('should remove a directive related only to the modified file, if it was removed from it', function() {
     var fooDirective = {
       compile: angular.noop,
       foo: 'foo'

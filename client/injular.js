@@ -668,10 +668,11 @@
       }
       var index = bsInjular.indexByDirectiveName[name]++;
 
+      var newDirective;
       if (hasOwnProperty(directivesByName, name)) {
         if (index < directiveList.length) {
           var directive = directiveList[index];
-          var newDirective = instantiateDirective($injector, directiveFactory, name);
+          newDirective = instantiateDirective($injector, directiveFactory, name);
           removeReplaceableDirectiveProperties(directive);
           angular.extend(directive, newDirective);
           return this;
@@ -685,8 +686,13 @@
       var $compileProvider = getCompileProvider();
       $compileProvider.directive(name, directiveFactory);
       var directives = $injector.get(name + DIRECTIVE_SUFFIX);
-      directiveList.push(directives[directives.length - 1]);
-      bsInjular.indexByDirectiveName[name]++;
+      newDirective = directives[directives.length - 1];
+      if (angular.isObject(newDirective)) {
+        directiveList.push(newDirective);
+        bsInjular.indexByDirectiveName[name]++;
+      } else {
+        directives.pop();
+      }
     }
 
     function getCompileProvider() {

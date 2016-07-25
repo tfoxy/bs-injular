@@ -111,7 +111,7 @@ describe('fileChanger', function() {
       var newContent = fileChanger.appendAngularModulePatch(content);
       expect(newContent).to.startWith(content);
     });
-    
+
   });
 
   describe('_appendAngularModulePatchFunction', function() {
@@ -236,6 +236,23 @@ describe('fileChanger', function() {
       expect(directive).to.be.an('object');
       expect(fileDirectives).to.have.property('foo')
       .that.has.property('0', directive);
+    });
+
+    it('should not add an undefined directive to the directivesByUrl', function() {
+      var directives;
+      setCurrentScript('/foo.directive.js');
+      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
+      angular.module('app', []).directive('foo', function() {}).run(function(fooDirective) {
+        directives = fooDirective;
+      }).factory('$exceptionHandler', function() {
+        return function() {/*noop*/};
+      });
+      bootstrapApp('app');
+
+      expect(directives).to.have.length(0);
+      expect(fileDirectives).to.have.property('foo')
+      .that.has.length(0);
     });
 
     it('should patch angular.filter with another function that calls the original angular.filter', function() {

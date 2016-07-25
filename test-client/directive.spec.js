@@ -468,6 +468,32 @@ describe('directive changed listener', function() {
   });
 
 
+  it('should handle undefined directive', function() {
+    var fileDirectives = {};
+    window.___bsInjular___ = {directivesByUrl: {'/app/foo.directive.js': fileDirectives}};
+    var element = angular.element('<div ng-app="quiet-app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['quiet-app', provide]);
+
+    listener({
+      scriptUrl: '/app/foo.directive.js',
+      script: [
+        "angular.module('quiet-app')",
+        ".directive('foo', function(){})"
+      ].join(''),
+      recipes: ['directive']
+    });
+
+    expect(fileDirectives).to.have.property('foo')
+    .that.deep.equals([]);
+
+    function provide($provide, $compileProvider) {
+      window.___bsInjular___.$compileProvider = $compileProvider;
+      provideRoute($provide);
+    }
+  });
+
+
   if (VERSION_MINOR >= 5) {
     it('should handle component recipe', function() {
       var fooComponent = {

@@ -63,6 +63,7 @@ describe('middlewareFactory', () => {
       res.end(body);
       expect(res._body).to.include(body);
       expect(res._body).to.not.equal(body);
+      expect(res._body).to.include('/app/foo.directive.js');
     });
 
     it('should tamper the module file when matching the pattern', () => {

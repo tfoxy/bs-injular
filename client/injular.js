@@ -31,9 +31,6 @@
     {fn: 'ngSwitchWatchAction', get: ''}  // ng-switch
   ];
 
-  var anchor = document.createElement('a');
-  var basePath = getBasePath();
-
   var injular = window.injular = {
     injectTemplate: injectTemplate,
     injectScript: injectScript,
@@ -70,9 +67,6 @@
     var $injector = getInjector();
 
     var scriptUrl = data.scriptUrl;
-    if (hasDirective) {
-      scriptUrl = getValidScriptUrl(scriptUrl);
-    }
     var localAngular = getLocalAngular($injector);
     localAngular._scriptUrl = scriptUrl;
     var jsInjector = new window.Function('angular', data.script);
@@ -96,42 +90,6 @@
     }
 
     return bsInjular;
-  }
-
-
-  function getBasePath() {
-    anchor.href = document.baseURI;
-    var path = anchor.pathname;
-    var index = path.lastIndexOf('/');
-    return path.slice(0, index + 1);
-  }
-
-
-  function getValidScriptUrl(url) {
-    /* TODO test all cases */
-    var bsInjular = getBsInjular();
-    var directivesByUrl = bsInjular.directivesByUrl;
-    if (!directivesByUrl) {
-      return url;
-    }
-    var scriptUrl = url;
-    if (url.charAt(0) !== '/') {
-      scriptUrl = '/' + url;
-    }
-    if (hasOwnProperty(directivesByUrl, scriptUrl)) {
-      return scriptUrl;
-    }
-    var prevUrl = scriptUrl;
-    anchor.pathname = basePath + url;
-    scriptUrl = anchor.pathname.replace(/\/+/g, '/');
-    if (hasOwnProperty(directivesByUrl, scriptUrl)) {
-      return scriptUrl;
-    }
-    injular._logger.error(
-      'No directives for urls:', [prevUrl, scriptUrl], ' . Possible urls:',
-      objectKeys(directivesByUrl)
-    );
-    throwError('No directives for given script url');
   }
 
 

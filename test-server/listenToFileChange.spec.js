@@ -121,7 +121,8 @@ describe('listenToFileChange', () => {
       sinon.spy(bs.io.sockets, 'emit');
       bs.emitter.emit('file:changed', directiveEvent);
       expect(bs.io.sockets.emit.args[0][1]).to.have.property('script')
-        .that.not.equals(appFs['foo.directive.js']);
+      .that.includes('foo.directive.js')
+      .and.that.not.equals(appFs['foo.directive.js']);
     });
 
     it('should log error when changing a js file and no module file was matched', () => {

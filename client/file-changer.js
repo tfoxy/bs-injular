@@ -31,8 +31,9 @@
     return '<!--bs-injular-start ' + url + '-->' + ie8Content + body + '<!--bs-injular-end ' + url + '-->';
   }
 
-  function wrapDirectiveFile(content) {
-    return 'window.___bsInjular___.addScriptUrlToDirectives();' + content;
+  function wrapDirectiveFile(content, url) {
+    var jsonUrl = JSON.stringify(url);
+    return 'try{window.___bsInjular___.addScriptUrlToDirectives(' + jsonUrl + ');' + content + '\n}finally{window.___bsInjular___.currentDirectiveUrl = null};\n';
   }
 
   function appendProvideGetter(body, moduleName, options) {
@@ -46,10 +47,10 @@
   }
 
   function appendAngularModulePatch(body) {
-    return body += '\n;(' + _appendAngularModulePatchFunction + ')(angular, window, document);\n';
+    return body += '\n;(' + _appendAngularModulePatchFunction + ')(angular, window);\n';
   }
 
-  function _appendAngularModulePatchFunction(angular, window, document) {
+  function _appendAngularModulePatchFunction(angular, window) {
     var bsInjular = window.___bsInjular___;
     if (!bsInjular) {
       bsInjular = window.___bsInjular___ = {};
@@ -77,17 +78,17 @@
       return module;
 
       function bsInjularAngularDirective(name, directiveFactory) {
-        var currentScript = document.currentScript || alternativeCurrentScript();
-        if (!currentScript) {
+        var scriptUrl = bsInjular.currentDirectiveUrl;
+        if (!scriptUrl) {
           // TODO better warning
           /* eslint-disable no-console */
           console.warn('[BS-Injular] No currentScript for directive: ' + name);
           /* eslint-enable no-console */
         } else if (angular.isString(name)) {
-          directiveFactory = patchDirectiveFactory(name, directiveFactory, currentScript);
+          directiveFactory = patchDirectiveFactory(name, directiveFactory, scriptUrl);
         } else {
           angular.forEach(name, function (value, key) {
-            name[key] = patchDirectiveFactory(key, value, currentScript);
+            name[key] = patchDirectiveFactory(key, value, scriptUrl);
           });
         }
 
@@ -99,7 +100,7 @@
           filterFactory = patchFilterFactory(name, filterFactory);
         } else {
           angular.forEach(name, function (value, key) {
-            name[key] = patchDirectiveFactory(key, value);
+            name[key] = patchFilterFactory(key, value);
           });
         }
 
@@ -107,7 +108,7 @@
       }
     }
 
-    function patchDirectiveFactory(name, directiveFactory, currentScript) {
+    function patchDirectiveFactory(name, directiveFactory, scriptUrl) {
       var directiveFactoryFn;
       if (angular.isArray(directiveFactory)) {
         directiveFactoryFn = directiveFactory[directiveFactory.length - 1];
@@ -117,9 +118,7 @@
 
       var annotations = angular.injector.$$annotate(directiveFactory);
       annotations.push(function () {
-        var src = currentScript.getAttribute('injular-src') || currentScript.src;
-        var url = getPathname(src);
-        var directivesByName = bsInjular.directivesByUrl[url];
+        var directivesByName = bsInjular.directivesByUrl[scriptUrl];
         var directive = directiveFactoryFn.apply(this, arguments);
         if (directivesByName) {
           if (!hasOwnProperty(directivesByName, name)) {
@@ -164,29 +163,11 @@
       };
     }
 
-    function addScriptUrlToDirectives() {
-      var currentScript = document.currentScript || alternativeCurrentScript();
-      var src = currentScript.getAttribute('injular-src') || currentScript.src;
-      var url = getPathname(src);
+    function addScriptUrlToDirectives(url) {
       if (!hasOwnProperty(bsInjular.directivesByUrl, url)) {
         bsInjular.directivesByUrl[url] = {};
       }
-    }
-
-    function getPathname(url) {
-      var anchor = document.createElement('a');
-      anchor.href = url;
-      var pathname = anchor.pathname;
-      // IE8 does not return the complete pathname
-      if (pathname.charAt(0) !== '/') {
-        pathname = '/' + pathname;
-      }
-      return pathname;
-    }
-
-    function alternativeCurrentScript() {
-      var scripts = document.getElementsByTagName('script');
-      return scripts[scripts.length - 1];
+      bsInjular.currentDirectiveUrl = url;
     }
 
     function hasOwnProperty(object, property) {

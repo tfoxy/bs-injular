@@ -1,23 +1,13 @@
 'use strict';
 
 describe('fileChanger', function() {
-  var angular, currentScriptDiv;
+  var angular;
   var fileChanger = window.fileChanger;
   var noop = window.angular.noop;
-
-  function setCurrentScript(src) {
-    currentScriptDiv.innerHTML = '<script src="' + src + '"></script>';
-    return currentScriptDiv.firstChild;
-  }
 
   function bootstrapApp(appName) {
     angular.bootstrap(document.createElement('div'), [appName]);
   }
-
-  before(function() {
-    currentScriptDiv = document.createElement('div');
-    document.body.appendChild(currentScriptDiv);
-  });
 
   beforeEach(function() {
     angular = window.angular.copy(window.angular);
@@ -25,11 +15,6 @@ describe('fileChanger', function() {
 
   afterEach(function() {
     delete window.___bsInjular___;
-    currentScriptDiv.innerHTML = '';
-  });
-
-  after(function() {
-    currentScriptDiv.parentNode.removeChild(currentScriptDiv);
   });
 
   describe('.wrapTemplate', function() {
@@ -135,7 +120,7 @@ describe('fileChanger', function() {
     it('should replace angular.module when evaluated', function() {
       var module = angular.module;
 
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
 
       expect(angular.module).to.not.equal(module);
     });
@@ -143,16 +128,15 @@ describe('fileChanger', function() {
     it('should call original angular.module when evaluated and angular.module is called', function() {
       var module = sinon.spy(angular, 'module');
 
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
       angular.module('app');
 
       expect(module).to.have.callCount(1);
     });
 
     it('should replace module.directive when evaluated and angular.module is called', function() {
-      setCurrentScript('/foo.directive.js');
       var directive = angular.module('app', []).directive;
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
       var module = angular.module('app');
 
       expect(module.directive).to.not.equal(directive);
@@ -175,9 +159,9 @@ describe('fileChanger', function() {
     });
 
     it('should call original module.directive with an array factory when new module.directive is called', function() {
-      setCurrentScript('/foo.directive.js');
       var directive = angular.module('app', []).directive = sinon.spy();
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
       angular.module('app').directive('foo', function() {
         return {};
       });
@@ -189,26 +173,9 @@ describe('fileChanger', function() {
 
     it('should patch the directive factory in order to add the directive to bsInjular.directivesByUrl', function() {
       var directive;
-      setCurrentScript('/foo.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
       var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
-      angular.module('app', []).directive('foo', function() {
-        return { foo: 'bar' };
-      }).run(function(fooDirective) {
-        directive = fooDirective[0];
-      });
-      bootstrapApp('app');
-
-      expect(directive).to.have.property('foo', 'bar');
-      expect(fileDirectives).to.have.property('foo')
-      .that.has.property('0', directive);
-    });
-
-    it('should use the injular-src attribute when it is available', function() {
-      var directive;
-      setCurrentScript('/foo.directive.js').setAttribute('injular-src', '/bar.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
-      var fileDirectives = window.___bsInjular___.directivesByUrl['/bar.directive.js'] = {};
       angular.module('app', []).directive('foo', function() {
         return { foo: 'bar' };
       }).run(function(fooDirective) {
@@ -223,8 +190,8 @@ describe('fileChanger', function() {
 
     it('should transform a postlink function directive to a regular one', function() {
       var directive;
-      setCurrentScript('/foo.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
       var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
       angular.module('app', []).directive('foo', function() {
         return noop;
@@ -240,8 +207,8 @@ describe('fileChanger', function() {
 
     it('should not add an undefined directive to the directivesByUrl', function() {
       var directives;
-      setCurrentScript('/foo.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
       var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
       angular.module('app', []).directive('foo', function() {}).run(function(fooDirective) {
         directives = fooDirective;
@@ -292,11 +259,10 @@ describe('fileChanger', function() {
     });
 
     it('should add window.___bsInjular___.directivesByUrl[currentScript.src] when evaluated', function() {
-      var content = fileChanger.wrapDirectiveFile('');
+      var content = fileChanger.wrapDirectiveFile('', '/foo.directive.js');
       var evaluate = new Function('window', content);
 
-      setCurrentScript('/foo.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
       evaluate(window);
 
       expect(window.___bsInjular___.directivesByUrl)
@@ -304,18 +270,46 @@ describe('fileChanger', function() {
       .that.deep.equals({});
     });
 
-    it('should not add window.___bsInjular___.directivesByUrl[currentScript.src] if it already exists', function() {
-      var content = fileChanger.wrapDirectiveFile('');
+    it('should not add window.___bsInjular___.directivesByUrl[scriptUrl] if it already exists', function() {
+      var content = fileChanger.wrapDirectiveFile('', '/foo.directive.js');
       var evaluate = new Function('window', content);
 
-      setCurrentScript('/foo.directive.js');
-      fileChanger._appendAngularModulePatchFunction(angular, window, document);
+      fileChanger._appendAngularModulePatchFunction(angular, window);
       var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
       evaluate(window);
 
       expect(window.___bsInjular___.directivesByUrl)
       .to.have.property('/foo.directive.js')
       .that.equals(fileDirectives);
+    });
+
+    it('should set window.___bsInjular___.currentDirectiveUrl only when evaluating', function() {
+      var content = fileChanger.wrapDirectiveFile(
+        'local.url = window.___bsInjular___.currentDirectiveUrl',
+        '/foo.directive.js'
+      );
+      var evaluate = new Function('window', 'local', content);
+
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      var local = {};
+      evaluate(window, local);
+
+      expect(window.___bsInjular___).to.have.property('currentDirectiveUrl', null);
+      expect(local).to.have.property('url', '/foo.directive.js');
+    });
+
+    it('should set window.___bsInjular___.currentDirectiveUrl to null even when content throws error', function() {
+      var content = fileChanger.wrapDirectiveFile('throw new Error()', '/foo.directive.js');
+      var evaluate = new Function('window', content);
+
+      fileChanger._appendAngularModulePatchFunction(angular, window);
+      try {
+        evaluate(window);
+      } catch (err) {
+        /* noop */
+      }
+
+      expect(window.___bsInjular___).to.have.property('currentDirectiveUrl', null);
     });
 
   });

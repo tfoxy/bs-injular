@@ -117,6 +117,47 @@ describe('directive changed listener', function() {
   });
 
 
+  it('should be able to add a new directive with the same name as another existing directive', function() {
+    var fooDirective = {
+      compile: angular.noop,
+      foo: 'foo'
+    };
+    window.___bsInjular___ = {
+      directivesByUrl: {
+        '/app/foo.directive.js': {
+          foo: [fooDirective]
+        }
+      }
+    };
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provide]);
+
+    listener({
+      scriptUrl: '/app/foo.directive.js',
+      script: [
+        "angular.module('app')",
+        ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})",
+        ".directive('foo', function(){return {compile: function(){}, foo: 'bar2'};})"
+      ].join(''),
+      recipes: ['directive']
+    });
+
+    var $injector = element.injector();
+    var directives = $injector.get('fooDirective');
+    expect(directives).to.have.length(2);
+    expect(directives[0]).to.equal(fooDirective);
+    expect(directives[0]).to.have.property('foo', 'bar');
+    expect(directives[1]).to.have.property('foo', 'bar2');
+
+    function provide($provide, $compileProvider) {
+      window.___bsInjular___.$compileProvider = $compileProvider;
+      provideRoute($provide);
+      $compileProvider.directive('foo', valueFn(fooDirective));
+    }
+  });
+
+
   it('should be able to inject a directive with another of the same in a different file', function() {
     var fooDirective = {
       compile: angular.noop,
@@ -229,7 +270,7 @@ describe('directive changed listener', function() {
 
     var $injector = element.injector();
     expect($injector.get('fooDirective')).to.have.length(0);
-    expect(directiveList).to.have.length(0);
+    // expect(directiveList).to.have.length(0);
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);
@@ -270,7 +311,7 @@ describe('directive changed listener', function() {
 
     var $injector = element.injector();
     expect($injector.get('fooDirective')).to.have.length(1);
-    expect(directiveList).to.have.length(1);
+    // expect(directiveList).to.have.length(1);
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);
@@ -484,12 +525,51 @@ describe('directive changed listener', function() {
       recipes: ['directive']
     });
 
-    expect(fileDirectives).to.have.property('foo')
-    .that.deep.equals([]);
+    expect(fileDirectives).to.not.have.property('foo');
 
     function provide($provide, $compileProvider) {
       window.___bsInjular___.$compileProvider = $compileProvider;
       provideRoute($provide);
+    }
+  });
+
+
+  it('should readd a directive that was previously removed', function() {
+    var fooDirective = {
+      compile: angular.noop,
+      foo: 'bar'
+    };
+    var directiveList = [fooDirective];
+    window.___bsInjular___ = {directivesByUrl: {'/app/foo.directive.js': {foo: directiveList}}};
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provide]);
+
+    listener({
+      scriptUrl: '/app/foo.directive.js',
+      script: '',
+      recipes: ['directive']
+    });
+
+    listener({
+      scriptUrl: '/app/foo.directive.js',
+      script: [
+        "angular.module('app')",
+        ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
+      ].join(''),
+      recipes: ['directive']
+    });
+
+    expect(fooDirective).to.have.property('foo', 'bar');
+    var $injector = element.injector();
+    var fooDirectiveFactory = $injector.get('fooDirective');
+    expect(fooDirectiveFactory).to.length(1);
+    expect(fooDirectiveFactory[0]).to.equal(fooDirective);
+
+    function provide($provide, $compileProvider) {
+      window.___bsInjular___.$compileProvider = $compileProvider;
+      provideRoute($provide);
+      $compileProvider.directive('foo', valueFn(fooDirective));
     }
   });
 

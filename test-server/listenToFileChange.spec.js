@@ -115,16 +115,6 @@ describe('listenToFileChange', () => {
         .and.to.have.been.calledWith('injularScript:changed');
     });
 
-    it('should change script when "injularTemplate:changed" is emitted with directive event', () => {
-      bs.options = bs.options.setIn(['server', 'baseDir'], '.');
-      listenToFileChange(config, bs);
-      sinon.spy(bs.io.sockets, 'emit');
-      bs.emitter.emit('file:changed', directiveEvent);
-      expect(bs.io.sockets.emit.args[0][1]).to.have.property('script')
-      .that.includes('foo.directive.js')
-      .and.that.not.equals(appFs['foo.directive.js']);
-    });
-
     it('should log error when changing a js file and no module file was matched', () => {
       bs.options = bs.options.setIn(['server', 'baseDir'], '.');
       delete config.matchedModuleFile;

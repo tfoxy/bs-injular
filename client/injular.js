@@ -109,7 +109,7 @@
       for (var name in directivesByName) {
         if (hasOwnProperty(directivesByName, name)) {
           var removeStartIndex = indexByDirectiveName[name] || 0;
-          var directiveList = directivesByName[name].splice(removeStartIndex);
+          var directiveList = directivesByName[name].slice(removeStartIndex);
           if (directiveList.length) {
             var moduleDirectives = $injector.get(name + DIRECTIVE_SUFFIX);
             getAngular().forEach(directiveList, function(directive) {
@@ -626,31 +626,38 @@
       }
       var index = bsInjular.indexByDirectiveName[name]++;
 
-      var newDirective;
+      var newDirective, directives;
       if (hasOwnProperty(directivesByName, name)) {
+        var directive;
+        directives = $injector.get(name + DIRECTIVE_SUFFIX);
         if (index < directiveList.length) {
-          var directive = directiveList[index];
-          newDirective = instantiateDirective($injector, directiveFactory, name);
-          removeReplaceableDirectiveProperties(directive);
-          angular.extend(directive, newDirective);
-          return this;
+          directive = directiveList[index];
+        } else {
+          directive = {};
+          directiveList.push(directive);
         }
+        newDirective = instantiateDirective($injector, directiveFactory, name);
+        removeReplaceableDirectiveProperties(directive);
+        angular.extend(directive, newDirective);
+        if (index >= directives.length) {
+          directives.push(directive);
+        }
+        return this;
       } else {
-        directiveList = directivesByName[name] = [];
+        // create directive factory if it does not exists
+        var $compileProvider = getCompileProvider();
+        $compileProvider.directive(name, directiveFactory);
+        directives = $injector.get(name + DIRECTIVE_SUFFIX);
+        newDirective = directives[directives.length - 1];
+        if (angular.isObject(newDirective)) {
+          directivesByName[name] = [newDirective];
+          bsInjular.indexByDirectiveName[name]++;
+        } else {
+          directives.pop();
+        }
       }
 
-      // create directive if it does not exists
-
-      var $compileProvider = getCompileProvider();
-      $compileProvider.directive(name, directiveFactory);
-      var directives = $injector.get(name + DIRECTIVE_SUFFIX);
-      newDirective = directives[directives.length - 1];
-      if (angular.isObject(newDirective)) {
-        directiveList.push(newDirective);
-        bsInjular.indexByDirectiveName[name]++;
-      } else {
-        directives.pop();
-      }
+      return this;
     }
 
     function getCompileProvider() {

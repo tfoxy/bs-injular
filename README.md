@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/tfoxy/bs-injular/branch/master/graph/badge.svg)](https://codecov.io/gh/tfoxy/bs-injular)
 [![Gitter](https://badges.gitter.im/tfoxy/bs-injular.svg)](https://gitter.im/tfoxy/bs-injular?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
-> Inject angular templates, controllers and directives with Browsersync
+> Inject angular templates, controllers, directives and components with Browsersync
 
 AngularJS 1.x hot reloading.
 This is a plugin for the awesome [BrowserSync](https://browsersync.io).
@@ -41,7 +41,9 @@ and watch the changes instantly.
 var browserSync = require('browser-sync');
 var bsInjular = require('bs-injular');
 
-browserSync.use(bsInjular);
+browserSync.use(bsInjular, {
+  templates: '**/app/**/*.html',
+});
 
 browserSync({
   /* browserSync options */
@@ -59,11 +61,10 @@ var bsInjular = require('bs-injular');
 browserSync.use(bsInjular, {
   templates: '**/app/**/*.html',
   controllers: '**/app/**/*.controller.js',
-  directives: '**/app/**/*.directive.js',
+  directives: '**/app/**/*.+(directive|component).js',
   filters: '**/app/**/*.filter.js',
   angularFile: '/bower_components/angular/angular.js',
-  moduleFile: '**/app/index.module.js',
-  ngApp: 'fooApp'
+  moduleFile: '**/app/index.module.js'
 });
 
 browserSync({
@@ -71,46 +72,34 @@ browserSync({
 });
 ```
 
-This supports template, controller, directive and filter injection.
+This supports template, controller, directive, component and filter injection.
 
 
 ## Configuration
-
-By default, the following options are provided:
-
-```js
-{
-  templates: '**/app/**/*.html',
-  notify: true,
-  screwIE8: true
-}
-```
 
 If you want to inject controllers, you must provide the following properties:
 
 ```js
 {
   controllers: '**/app/**/*.controller.js',
-  moduleFile: '**/app/index.module.js',
-  ngApp: 'fooApp'
+  moduleFile: '**/app/index.module.js'
 }
 ```
 
-The module file and module name (ngApp value) are necessary to get the `$controllerProvider`
+The module file is necessary to get the `$controllerProvider`
 in the config phase so that the controllers can be injected later.
 
-If you want to inject directives, you must provide the following properties:
+If you want to inject directives and components, you must provide the following properties:
 
 ```js
 {
-  directives: '**/app/**/*.directive.js',
+  directives: '**/app/**/*.+(directive|component).js',
   angularFile: '/bower_components/angular/angular.js',
-  moduleFile: '**/app/index.module.js',
-  ngApp: 'fooApp'
+  moduleFile: '**/app/index.module.js'
 }
 ```
 
-The module file and module name (ngApp value) are necessary to get the `$compileProvider`
+The module file is necessary to get the `$compileProvider`
 in the config phase so that the directives can be injected later.  
 The angular file is necessary to keep track of the directives present in a file.
 
@@ -145,9 +134,9 @@ See:
 
 ## Version support
 
-Supports AngularJS 1.x starting from 1.2.  
-Supports all modern browsers and IE >= 9.
-For IE8, you must set screwIE8 option to false:
+Supports AngularJS from 1.2 to 1.5 .
+Supports all modern browsers and IE >= 8.
+NOTE: for IE8, you must set screwIE8 option to false:
 
 ```js
 browserSync.use(bsInjular, {

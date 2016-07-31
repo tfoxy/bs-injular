@@ -54,7 +54,7 @@
     if (data.reloadRoute) {
       reloadRoute($injector);
     } else {
-      replaceTemplateInDom($injector, templateUrl, template, prevTemplate);
+      replaceTemplateInDom($injector, templateUrl, template, prevTemplate, data.avoidCleanScope);
     }
   }
 
@@ -230,7 +230,7 @@
   }
 
 
-  function replaceTemplateInDom($injector, templateUrl, template, prevTemplate) {
+  function replaceTemplateInDom($injector, templateUrl, template, prevTemplate, avoidCleanScope) {
     var angular = getAngular();
     var tw = createInjularCommentWalker(templateUrl);
     var $compile = $injector.get('$compile');
@@ -248,7 +248,9 @@
       destroyChildScopes(scope);
       removeTemplateWatchers(scope);
       removeTemplateListeners(scope);
-      cleanScope(scope, templateElements, prevTemplate, $compile, angular);
+      if (!avoidCleanScope) {
+        cleanScope(scope, templateElements, prevTemplate, $compile, angular);
+      }
 
       injular._logger.debug('Replacing:', templateElements, ';with:', newTemplateElements);
       replaceWith(templateElements, newTemplateElements);

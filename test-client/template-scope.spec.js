@@ -143,6 +143,46 @@ describe('template changed listener (scope)', function() {
   });
 
 
+  it('should evaluate inner directives only once if avoidCleanScope option is used', function() {
+    var template = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div ng-controller="Foo">{{foo}}</div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    var element = angular.element([
+      '<div ng-app="'+ngApp+'">',
+      template,
+      '</div>'
+    ].join(''));
+    rootElement.append(element);
+    angular.bootstrap(element, [ngApp, provideController]);
+    element.injector().get('$templateCache').put('/app/foo.html', template);
+
+    expect(element.text()).to.equal('bar1');
+
+    var newTemplate = [
+      '<!--bs-injular-start /app/foo.html-->',
+      '<div ng-controller="Foo">FOO{{foo}}</div>',
+      '<!--bs-injular-end /app/foo.html-->'
+    ].join('');
+    listener({
+      template: newTemplate,
+      templateUrl: '/app/foo.html',
+      avoidCleanScope: true
+    });
+
+    expect(element.text()).to.equal('FOObar2');
+
+
+    function provideController($controllerProvider) {
+      var i = 0;
+      $controllerProvider.register('Foo', function($scope) {
+        $scope.foo = 'bar' + (++i);
+      });
+    }
+  });
+
+
   it('should add template to dom before applying scope', function() {
     var template = [
       '<!--bs-injular-start /app/foo.html-->',

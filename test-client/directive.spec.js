@@ -55,6 +55,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');  // Initialize directive
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -95,6 +96,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -132,6 +134,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -180,6 +183,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo2.directive.js',
@@ -261,6 +265,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -299,6 +304,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -318,6 +324,35 @@ describe('directive changed listener', function() {
       $compileProvider.directive('foo', valueFn(fooDirective));
       $compileProvider.directive('foo', valueFn(fooDirective2));
     }
+  });
+
+
+  it('should remove a directive even if it was never initialized', function() {
+    var angular = window.angular.copy(window.angular);
+    var fooDirective = {
+      compile: angular.noop,
+      foo: 'bar'
+    };
+    var directiveUrl = '/app/foo.directive.js';
+    window.fileChanger._appendAngularModulePatchFunction(angular, window);
+    window.___bsInjular___.addScriptUrlToDirectives(directiveUrl);
+    angular.module('appCopy', []).directive('foo', function() {
+      return fooDirective;
+    });
+    var element = angular.element('<div ng-app="appCopy"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['appCopy', provideRoute]);
+
+    listener({
+      scriptUrl: directiveUrl,
+      script: '',
+      recipes: ['directive']
+    });
+
+    var $injector = element.injector();
+    expect($injector.get('fooDirective')).to.have.length(0);
+    expect(window.___bsInjular___.directivesByUrl[directiveUrl].foo)
+    .to.have.length(1);
   });
 
 
@@ -363,6 +398,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -393,6 +429,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -422,6 +459,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
     var $injector = element.injector();
     var fooDirectives = $injector.get('fooDirective').slice(); // slice for copy
     window.___bsInjular___ = {directivesByUrl: {'/app/foo.directive.js': {foo: fooDirectives}}};
@@ -462,6 +500,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -490,6 +529,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',
@@ -544,6 +584,7 @@ describe('directive changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element, ['app', provide]);
+    element.injector().get('fooDirective');
 
     listener({
       scriptUrl: '/app/foo.directive.js',

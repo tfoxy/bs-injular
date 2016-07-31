@@ -51,6 +51,7 @@
   }
 
   function _appendAngularModulePatchFunction(angular, window) {
+    var componentRegistration;
     var bsInjular = window.___bsInjular___;
     if (!bsInjular) {
       bsInjular = window.___bsInjular___ = {};
@@ -73,7 +74,10 @@
         directiveFn = module.directive;
         filterFn = module.filter;
         module.directive = bsInjularAngularDirective;
-        module.filter = bsInjularFilterDirective;
+        module.filter = bsInjularAngularFilter;
+        if ('component' in module) {
+          module.component = bsInjularAngularComponent;
+        }
       }
       return module;
 
@@ -92,7 +96,7 @@
         return directiveFn.call(this, name, directiveFactory);
       }
 
-      function bsInjularFilterDirective(name, filterFactory) {
+      function bsInjularAngularFilter(name, filterFactory) {
         if (angular.isString(name)) {
           filterFactory = patchFilterFactory(name, filterFactory);
         } else {
@@ -103,9 +107,31 @@
 
         return filterFn.call(this, name, filterFactory);
       }
+
+      function bsInjularAngularComponent(name, options) {
+        if (!componentRegistration) {
+          var appName = '___bsInjular___';
+          angular.module(appName, []).config(['$compileProvider', function ($compileProvider) {
+            componentRegistration = $compileProvider.component;
+          }]);
+          angular.bootstrap(window.document.createElement('div'), [appName]);
+        }
+        return componentRegistration.call(module, name, options);
+      }
     }
 
     function patchDirectiveFactory(name, directiveFactory, scriptUrl) {
+      if (!hasOwnProperty(bsInjular.directivesByUrl, scriptUrl)) {
+        /* eslint-disable no-console */
+        console.error('No directivesByUrl for ' + scriptUrl);
+        /* eslint-enable no-console */
+        return directiveFactory;
+      }
+      var directivesByName = bsInjular.directivesByUrl[scriptUrl];
+      if (!hasOwnProperty(directivesByName, name)) {
+        directiveList = directivesByName[name] = [];
+      }
+      var directiveList = directivesByName[name];
       var directiveFactoryFn;
       if (angular.isArray(directiveFactory)) {
         directiveFactoryFn = directiveFactory[directiveFactory.length - 1];
@@ -115,16 +141,9 @@
 
       var annotations = angular.injector.$$annotate(directiveFactory);
       annotations.push(function () {
-        var directivesByName = bsInjular.directivesByUrl[scriptUrl];
         var directive = directiveFactoryFn.apply(this, arguments);
-        if (directivesByName) {
-          if (!hasOwnProperty(directivesByName, name)) {
-            directiveList = directivesByName[name] = [];
-          }
-          var directiveList = directivesByName[name];
-          directive = instantiateDirective(directive, name);
-          directiveList.push(directive);
-        }
+        directive = instantiateDirective(directive, name);
+        directiveList.push(directive);
         return directive;
       });
       return annotations;

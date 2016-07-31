@@ -43,7 +43,6 @@ describe('listenToFileChange', () => {
     };
     let templateEvent;
     let controllerEvent;
-    let directiveEvent;
     let config;
 
     beforeEach(() => {
@@ -54,11 +53,6 @@ describe('listenToFileChange', () => {
       };
       controllerEvent = {
         path: '/home/user/my-repo/app/foo.controller.js',
-        event: 'change',
-        namespace: 'core'
-      };
-      directiveEvent = {
-        path: '/home/user/my-repo/app/foo.directive.js',
         event: 'change',
         namespace: 'core'
       };

@@ -2,6 +2,7 @@
 
 describe('fileChanger', function() {
   var angular;
+  var VERSION_MINOR = window.angular.version.minor;
   var fileChanger = window.fileChanger;
   var noop = window.angular.noop;
 
@@ -161,7 +162,7 @@ describe('fileChanger', function() {
     it('should call original module.directive with an array factory when new module.directive is called', function() {
       var directive = angular.module('app', []).directive = sinon.spy();
       fileChanger._appendAngularModulePatchFunction(angular, window);
-      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
+      window.___bsInjular___.addScriptUrlToDirectives('/foo.directive.js');
       angular.module('app').directive('foo', function() {
         return {};
       });
@@ -174,8 +175,8 @@ describe('fileChanger', function() {
     it('should patch the directive factory in order to add the directive to bsInjular.directivesByUrl', function() {
       var directive;
       fileChanger._appendAngularModulePatchFunction(angular, window);
-      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
-      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
+      window.___bsInjular___.addScriptUrlToDirectives('/foo.directive.js');
+      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'];
       angular.module('app', []).directive('foo', function() {
         return { foo: 'bar' };
       }).run(function(fooDirective) {
@@ -191,8 +192,8 @@ describe('fileChanger', function() {
     it('should transform a postlink function directive to a regular one', function() {
       var directive;
       fileChanger._appendAngularModulePatchFunction(angular, window);
-      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
-      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
+      window.___bsInjular___.addScriptUrlToDirectives('/foo.directive.js');
+      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'];
       angular.module('app', []).directive('foo', function() {
         return noop;
       }).run(function(fooDirective) {
@@ -208,8 +209,8 @@ describe('fileChanger', function() {
     it('should not add an undefined directive to the directivesByUrl', function() {
       var directives;
       fileChanger._appendAngularModulePatchFunction(angular, window);
-      window.___bsInjular___.currentDirectiveUrl = '/foo.directive.js';
-      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'] = {};
+      window.___bsInjular___.addScriptUrlToDirectives('/foo.directive.js');
+      var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.directive.js'];
       angular.module('app', []).directive('foo', function() {}).run(function(fooDirective) {
         directives = fooDirective;
       }).factory('$exceptionHandler', function() {
@@ -248,6 +249,35 @@ describe('fileChanger', function() {
       expect(window.___bsInjular___.filtersCache.foo()).to.equal('foo');
     });
 
+    if (VERSION_MINOR >= 5) {
+      it('should patch the component factory in order to add the component to bsInjular.directivesByUrl', function() {
+        var component, auxFooFactory;
+        fileChanger._appendAngularModulePatchFunction(angular, window);
+        window.___bsInjular___.addScriptUrlToDirectives('/foo.component.js');
+        var fileDirectives = window.___bsInjular___.directivesByUrl['/foo.component.js'];
+        angular.module('app', []).component('foo', {
+          require: 'bar',
+          template: ['fooFactory', function(fooFactory) {
+            auxFooFactory = fooFactory;
+          }]
+        }).factory('fooFactory', function() {
+          return 'FooBar';
+        }).run(function(fooDirective) {
+          component = fooDirective[0];
+        });
+        var div = document.createElement('div');
+        div.innerHTML = '<foo></foo>';
+        angular.bootstrap(div, ['app']);
+
+        expect(component).to.have.property('require', 'bar');
+        expect(component).to.have.property('controller').that.is.a('function');
+        expect(component).to.have.property('controllerAs', '$ctrl');
+        expect(component).to.have.property('template').that.is.a('function');
+        expect(auxFooFactory).to.equal('FooBar');
+        expect(fileDirectives).to.have.property('foo')
+        .that.has.property('0', component);
+      });
+    }
   });
 
   describe('.wrapDirectiveFile', function() {

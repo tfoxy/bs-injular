@@ -109,9 +109,9 @@
       for (var name in directivesByName) {
         if (hasOwnProperty(directivesByName, name)) {
           var removeStartIndex = indexByDirectiveName[name] || 0;
+          var moduleDirectives = $injector.get(name + DIRECTIVE_SUFFIX);
           var directiveList = directivesByName[name].slice(removeStartIndex);
           if (directiveList.length) {
-            var moduleDirectives = $injector.get(name + DIRECTIVE_SUFFIX);
             getAngular().forEach(directiveList, function(directive) {
               var index = moduleDirectives.indexOf(directive);
               if (index >= 0) {

@@ -2,7 +2,6 @@
 
 describe('directive changed listener', function() {
   var VERSION_MINOR = angular.version.minor;
-  var DIRECTIVE_HAS_MODULE_NAME = VERSION_MINOR >= 3;
   var DIRECTIVE_CHANGED_EVENT = 'injularScript:changed';
   var bs = window.___browserSync___;
   var listener = bs.__events[DIRECTIVE_CHANGED_EVENT];
@@ -152,6 +151,7 @@ describe('directive changed listener', function() {
     expect(directives[0]).to.equal(fooDirective);
     expect(directives[0]).to.have.property('foo', 'bar');
     expect(directives[1]).to.have.property('foo', 'bar2');
+    expect(directives[1]).to.have.property('index', 1);
 
     function provide($provide, $compileProvider) {
       window.___bsInjular___.$compileProvider = $compileProvider;
@@ -356,7 +356,7 @@ describe('directive changed listener', function() {
   });
 
 
-  it('should not remove the following properties: index' + (DIRECTIVE_HAS_MODULE_NAME ? ', $$moduleName' : ''), function() {
+  it('should not remove the following properties: index', function() {
     var fooDirective = {
       compile: angular.noop,
       foo: 'bar'
@@ -378,9 +378,6 @@ describe('directive changed listener', function() {
     });
 
     expect(fooDirective).to.have.property('index', 0);
-    if (DIRECTIVE_HAS_MODULE_NAME) {
-      expect(fooDirective).to.have.property('$$moduleName');
-    }
 
     function provide($provide, $compileProvider) {
       provideRoute($provide);

@@ -633,7 +633,7 @@
         if (index < directiveList.length) {
           directive = directiveList[index];
         } else {
-          directive = {};
+          directive = { index: directives.length };
           directiveList.push(directive);
         }
         newDirective = instantiateDirective($injector, directiveFactory, name);
@@ -685,13 +685,14 @@
     directive.name = directive.name || name;
     directive.require = directive.require || (directive.controller && directive.name);
     directive.restrict = directive.restrict || 'EA';
+    directive.$$moduleName = directiveFactory.$$moduleName;
     return directive;
   }
 
 
   function removeReplaceableDirectiveProperties(directive) {
     for (var key in directive) {
-      if (key !== 'index' && key !== '$$moduleName') {
+      if (key !== 'index') {
         delete directive[key];
       }
     }

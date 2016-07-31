@@ -612,6 +612,46 @@ describe('directive changed listener', function() {
   });
 
 
+  it('should add a directive when multiple directives with the same name but different files exist', function() {
+    var directivesByUrl = {};
+    var fooDirectives = [];
+    for (var i = 0; i < 3; i++) {
+      var fooDirective = {
+        compile: angular.noop,
+        foo: 'foo' + i
+      };
+      fooDirectives.push(fooDirective);
+      directivesByUrl['/app/foo' + i + '.directive.js'] = {foo: [fooDirective]};
+    }
+    window.___bsInjular___ = {directivesByUrl: directivesByUrl};
+    var element = angular.element('<div ng-app="app"></div>');
+    rootElement.append(element);
+    angular.bootstrap(element, ['app', provide]);
+    var directives = element.injector().get('fooDirective');
+
+    listener({
+      scriptUrl: '/app/foo0.directive.js',
+      script: [
+        "angular.module('app')",
+        ".directive('foo', function(){return {compile: function(){}, foo: 'foo0'};})",
+        ".directive('foo', function(){return {compile: function(){}, foo: 'bar'};})"
+      ].join(''),
+      recipes: ['directive']
+    });
+
+    expect(directives).to.have.length(4);
+    expect(directives[3]).to.have.property('foo', 'bar');
+
+    function provide($provide, $compileProvider) {
+      window.___bsInjular___.$compileProvider = $compileProvider;
+      provideRoute($provide);
+      angular.forEach(fooDirectives, function(fooDirective) {
+        $compileProvider.directive('foo', valueFn(fooDirective));
+      });
+    }
+  });
+
+
   if (VERSION_MINOR >= 5) {
     it('should handle component recipe', function() {
       var fooComponent = {

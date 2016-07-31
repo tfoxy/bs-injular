@@ -63,7 +63,7 @@
     injular._setLoggerPriority(data.logLevel);
     injular._logger.debug('injectScript', data);
     
-    var hasDirective = data.recipes.indexOf('directive') >= 0;
+    var hasDirective = indexOf(data.recipes, 'directive') >= 0;
     var $injector = getInjector();
 
     var scriptUrl = data.scriptUrl;
@@ -113,7 +113,7 @@
           var directiveList = directivesByName[name].slice(removeStartIndex);
           if (directiveList.length) {
             getAngular().forEach(directiveList, function(directive) {
-              var index = moduleDirectives.indexOf(directive);
+              var index = indexOf(moduleDirectives, directive);
               if (index >= 0) {
                 moduleDirectives.splice(index, 1);
               }
@@ -624,25 +624,26 @@
       if (!hasOwnProperty(bsInjular.indexByDirectiveName, name)) {
         bsInjular.indexByDirectiveName[name] = 0;
       }
-      var index = bsInjular.indexByDirectiveName[name]++;
 
       var newDirective, directives;
       if (hasOwnProperty(directivesByName, name)) {
         var directive;
+        var fileIndex = bsInjular.indexByDirectiveName[name];
         directives = $injector.get(name + DIRECTIVE_SUFFIX);
-        if (index < directiveList.length) {
-          directive = directiveList[index];
+        if (fileIndex < directiveList.length) {
+          directive = directiveList[fileIndex];
         } else {
-          directive = { index: directives.length };
+          directive = {};
           directiveList.push(directive);
+        }
+        var index = indexOf(directives, directive);
+        if (index < 0) {
+          directive.index = directives.length;
+          directives.push(directive);
         }
         newDirective = instantiateDirective($injector, directiveFactory, name);
         removeReplaceableDirectiveProperties(directive);
         angular.extend(directive, newDirective);
-        if (index >= directives.length) {
-          directives.push(directive);
-        }
-        return this;
       } else {
         // create directive factory if it does not exists
         var $compileProvider = getCompileProvider();
@@ -656,6 +657,10 @@
           directives.pop();
         }
       }
+
+      // Increment after adding directive.
+      // Not before because an error in the directive factory can cause problems
+      bsInjular.indexByDirectiveName[name]++;
 
       return this;
     }
@@ -733,6 +738,28 @@
       }
       return keys;
     }
+  }
+
+
+  /* IE8 does not have Array.prototype.indexOf */
+  function indexOf(arr, searchElement) {
+    if (arr.indexOf) {
+      return arr.indexOf(searchElement);
+    }
+
+    if (arr == null) {
+      throw new TypeError('"this" is null or not defined');
+    }
+
+    var o = Object(arr);
+    var len = o.length >>> 0;
+
+    for (var i = 0; i < len; i++) {
+      if (i in o && o[i] === searchElement) {
+        return i;
+      }
+    }
+    return -1;
   }
 
 

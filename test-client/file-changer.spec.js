@@ -15,7 +15,7 @@ describe('fileChanger', function() {
   });
 
   afterEach(function() {
-    delete window.___bsInjular___;
+    window.___bsInjular___ = undefined;
   });
 
   describe('.wrapTemplate', function() {

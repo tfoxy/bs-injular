@@ -20,7 +20,7 @@ describe('controller changed listener', function() {
 
   afterEach(function() {
     rootElement.children().remove();
-    delete window.___bsInjular___;
+    window.___bsInjular___ = undefined;
   });
 
   after(function() {
@@ -129,14 +129,16 @@ describe('controller changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
     angular.bootstrap(element);
-    
-    var fn = listener.bind(null, {
-      script: '',
-      scriptUrl: 'app/foo.controller.js',
-      recipes: ['controller']
-    });
 
-    expect(fn).to.throw('window.___bsInjular___');
+    expect(fn).to['throw']('window.___bsInjular___');
+
+    function fn() {
+      listener({
+        script: '',
+        scriptUrl: 'app/foo.controller.js',
+        recipes: ['controller']
+      });
+    }
   });
 
 
@@ -146,13 +148,15 @@ describe('controller changed listener', function() {
     angular.bootstrap(element);
     window.___bsInjular___ = {};
 
-    var fn = listener.bind(null, {
-      script: "angular.module('app').controller('fooCtrl', function(){})",
-      scriptUrl: 'app/foo.controller.js',
-      recipes: ['controller']
-    });
+    expect(fn).to['throw']('$controllerProvider');
 
-    expect(fn).to.throw('$controllerProvider');
+    function fn() {
+      listener({
+        script: "angular.module('app').controller('fooCtrl', function(){})",
+        scriptUrl: 'app/foo.controller.js',
+        recipes: ['controller']
+      });
+    }
   });
 
 
@@ -171,16 +175,18 @@ describe('controller changed listener', function() {
       var element = angular.element('<div ng-app="app"></div>');
       rootElement.append(element);
       angular.bootstrap(element);
-      delete window.angular;
+      window.angular = undefined;
       window.___bsInjular___ = {$controllerProvider: {}};
-      
-      var fn = listener.bind(null, {
-        script: '',
-        scriptUrl: 'app/foo.controller.js',
-        recipes: ['controller']
-      });
 
-      expect(fn).to.throw('window.angular');
+      expect(fn).to['throw']('window.angular');
+
+      function fn() {
+        listener({
+          script: '',
+          scriptUrl: 'app/foo.controller.js',
+          recipes: ['controller']
+        });
+      }
     });
 
   });
@@ -191,13 +197,15 @@ describe('controller changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
 
-    var fn = listener.bind(null, {
-      script: '',
-      scriptUrl: 'app/foo.controller.js',
-      recipes: ['controller']
-    });
+    expect(fn).to['throw']('$injector');
 
-    expect(fn).to.throw('$injector');
+    function fn() {
+      listener({
+        script: '',
+        scriptUrl: 'app/foo.controller.js',
+        recipes: ['controller']
+      });
+    }
   });
 
 
@@ -207,15 +215,17 @@ describe('controller changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
 
-    var fn = listener.bind(null, {
-      script: '',
-      scriptUrl: 'app/foo.controller.js',
-      recipes: ['controller']
-    });
-
-    expect(fn).to.throw(Error)
+    expect(fn).to['throw'](Error)
     .that.has.property('message')
     .that.contains('$state').and.contains('$route');
+
+    function fn() {
+      listener({
+        script: '',
+        scriptUrl: 'app/foo.controller.js',
+        recipes: ['controller']
+      });
+    }
   });
 
 });

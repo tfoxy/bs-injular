@@ -179,26 +179,30 @@ describe('template changed listener', function() {
     });
 
     it('should print a warning when querySelector is not found', function() {
-      var fn = listener.bind(null, {
-        template: '',
-        templateUrl: '/app/foo.html'
-      });
+      expect(fn).to['throw']('querySelector');
 
-      expect(fn).to.throw('querySelector');
+      function fn() {
+        listener({
+          template: '',
+          templateUrl: '/app/foo.html'
+        });
+      }
     });
 
   });
 
 
   it('should print a warning when an [ng-app] element is not found', function() {
-    var fn = listener.bind(null, {
-      template: '',
-      templateUrl: '/app/foo.html'
-    });
-
-    expect(fn).to.throw(Error)
+    expect(fn).to['throw'](Error)
     .that.has.property('message')
     .that.contains('[ng-app]').and.not.contains('$injector');
+
+    function fn() {
+      listener({
+        template: '',
+        templateUrl: '/app/foo.html'
+      });
+    }
   });
 
 
@@ -206,12 +210,14 @@ describe('template changed listener', function() {
     var element = angular.element('<div ng-app="app"></div>');
     rootElement.append(element);
 
-    var fn = listener.bind(null, {
-      template: '',
-      templateUrl: '/app/foo.html'
-    });
+    expect(fn).to['throw']('$injector');
 
-    expect(fn).to.throw('$injector');
+    function fn() {
+      listener({
+        template: '',
+        templateUrl: '/app/foo.html'
+      });
+    }
   });
 
 
@@ -220,12 +226,14 @@ describe('template changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
 
-    var fn = listener.bind(null, {
-      template: '',
-      templateUrl: '/app/foo.html'
-    });
+    expect(fn).to['throw']('templateCache');
 
-    expect(fn).to.throw('templateCache');
+    function fn() {
+      listener({
+        template: '',
+        templateUrl: '/app/foo.html'
+      });
+    }
   });
 
 
@@ -244,14 +252,15 @@ describe('template changed listener', function() {
     angular.bootstrap(element, ['app', provideRoute]);
     element.injector().get('$templateCache').put('/app/foo.html', template);
 
-    var fn = listener.bind(null, {
-      template: '',
-      templateUrl: '/app/foo.html'
-    });
-
-    expect(fn).to.throw('bs-injular-end');
+    expect(fn).to['throw']('bs-injular-end');
     expect(routeReload).to.have.callCount(1);
 
+    function fn() {
+      listener({
+        template: '',
+        templateUrl: '/app/foo.html'
+      });
+    }
 
     function provideRoute($provide) {
       $provide.constant('$route', {reload: routeReload});

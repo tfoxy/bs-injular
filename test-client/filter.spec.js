@@ -20,7 +20,7 @@ describe('filter changed listener', function() {
 
   afterEach(function() {
     rootElement.children().remove();
-    delete window.___bsInjular___;
+    window.___bsInjular___ = undefined;
   });
 
   after(function() {
@@ -151,13 +151,15 @@ describe('filter changed listener', function() {
     angular.bootstrap(element);
     window.___bsInjular___ = {filtersCache: {}};
 
-    var fn = listener.bind(null, {
-      script: "angular.module('app').filter('fooCtrl', function(){})",
-      scriptUrl: 'app/foo.filter.js',
-      recipes: ['filter']
-    });
+    expect(fn).to['throw']('$filterProvider');
 
-    expect(fn).to.throw('$filterProvider');
+    function fn() {
+      listener({
+        script: "angular.module('app').filter('fooCtrl', function(){})",
+        scriptUrl: 'app/foo.filter.js',
+        recipes: ['filter']
+      });
+    }
   });
 
 });

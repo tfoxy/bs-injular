@@ -222,7 +222,7 @@
     injular._logger.debug('Template cache replaced:', cacheUrl);
 
     var prevTemplate = cache;
-    if (window.Array.isArray(cache) && cache.length > 1 && typeof cache[1] === 'string') {
+    if (isArray(cache) && cache.length > 1 && typeof cache[1] === 'string') {
       prevTemplate = cache[1];
     }
 
@@ -346,7 +346,8 @@
   function getFunctionName(fn) {
     var name = fn.name;
     if (typeof name !== 'string') {
-      name = /^function\s+([\w\$]+)\s*\(/.exec(fn.toString())[1];
+      var match = /^function\s+([\w\$]+)\s*\(/.exec(fn.toString());
+      name = match && match[1];
     }
     return name;
   }
@@ -762,6 +763,11 @@
       }
     }
     return -1;
+  }
+
+
+  function isArray(arg) {
+    return Object.prototype.toString.call(arg) === '[object Array]';
   }
 
 

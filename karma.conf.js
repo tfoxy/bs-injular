@@ -13,14 +13,12 @@ module.exports = function(config) {
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: [
-      'mocha',
-      'chai-sinon'
+      'mocha'
     ],
 
 
     // list of files / patterns to load in the browser
     files: [
-      require.resolve('chai-string'),
       `bower_components/angular-${ANGULAR_VERSION}/angular.js`,
       require.resolve('jquery'),
       'test-client/bs.js',
@@ -71,6 +69,14 @@ module.exports = function(config) {
     // how many browser should be started simultaneous
     concurrency: Infinity
   };
+
+  if (process.env.IE8) {
+    props.frameworks.push('expect', 'sinon');
+    props.files.unshift('expect-ext-ie8.js');
+  } else {
+    props.frameworks.push('chai-sinon');
+    props.files.unshift(require.resolve('chai-string'));
+  }
 
   if (process.env.DEBUG) {
     Object.assign(props, {

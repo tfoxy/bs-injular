@@ -21,7 +21,7 @@ describe('directive changed listener', function() {
 
   afterEach(function() {
     rootElement.children().remove();
-    delete window.___bsInjular___;
+    window.___bsInjular___ = undefined;
   });
 
   after(function() {
@@ -211,16 +211,18 @@ describe('directive changed listener', function() {
     rootElement.append(element);
     angular.bootstrap(element);
 
-    var fn = listener.bind(null, {
-      scriptUrl: '/app/foo.directive.js',
-      script: [
-        "angular.module('app')",
-        ".directive('foo', function(){return {compile: function(){}, bar: 'foo'};})"
-      ].join(''),
-      recipes: ['directive']
-    });
+    expect(fn).to['throw']('directivesByUrl');
 
-    expect(fn).to.throw('directivesByUrl');
+    function fn() {
+      listener({
+        scriptUrl: '/app/foo.directive.js',
+        script: [
+          "angular.module('app')",
+          ".directive('foo', function(){return {compile: function(){}, bar: 'foo'};})"
+        ].join(''),
+        recipes: ['directive']
+      });
+    }
   });
 
 

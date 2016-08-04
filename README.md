@@ -136,11 +136,11 @@ See:
 
 Supports AngularJS from 1.2 to 1.5 .
 Supports all modern browsers and IE >= 8.
-NOTE: for IE8, you must set screwIE8 option to false:
+NOTE: for IE8, you must set supportIE8 option to true:
 
 ```js
 browserSync.use(bsInjular, {
-  screwIE8: false,
+  supportIE8: true,
   /* bs-injular options */
 });
 ```

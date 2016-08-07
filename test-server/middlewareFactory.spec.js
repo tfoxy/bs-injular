@@ -84,20 +84,8 @@ describe('middlewareFactory', () => {
       expect(res._body).to.not.endWith(body);
     });
 
-    it('should log an error when no module name is given', () => {
+    it('should not log an error when no module name is given', () => {
       config.moduleFile = '/app/index.module.js';
-      let middleware = middlewareFactory(config);
-      let req = new Request('/app/index.module.js');
-      let res = new Response();
-      let next = sinon.spy();
-      middleware(req, res, next);
-      expect(next).to.have.callCount(1);
-      expect(config.logger.error).to.have.callCount(1);
-    });
-
-    it('should not log an error when module name is given', () => {
-      config.moduleFile = '/app/index.module.js';
-      config.ngApp = 'fooApp';
       let middleware = middlewareFactory(config);
       let req = new Request('/app/index.module.js');
       let res = new Response();

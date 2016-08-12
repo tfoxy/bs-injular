@@ -20,6 +20,10 @@ $ npm install --save-dev bs-injular browser-sync
 
 ## Try it
 
+You can try a **[live demo of the client code by clicking here](https://tfoxy.github.io/bs-injular-live-demo/#/gh-gist/83f19f04eacc289cd0fc7afedd66559f)**.
+
+If you want to try it with the server code, run the following commands:
+
 ```shell
 git clone https://github.com/tfoxy/bs-injular-demo.git
 cd bs-injular-demo

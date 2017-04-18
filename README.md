@@ -1,5 +1,7 @@
 # Injular
 
+[![Join the chat at https://gitter.im/tfoxy/bs-injular](https://badges.gitter.im/tfoxy/bs-injular.svg)](https://gitter.im/tfoxy/bs-injular?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![npm version](http://img.shields.io/npm/v/bs-injular.svg)](https://npmjs.org/package/bs-injular)
 [![build status](https://img.shields.io/travis/tfoxy/bs-injular.svg)](https://travis-ci.org/tfoxy/bs-injular)
 [![codecov](https://codecov.io/gh/tfoxy/bs-injular/branch/master/graph/badge.svg)](https://codecov.io/gh/tfoxy/bs-injular)

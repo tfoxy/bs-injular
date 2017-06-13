@@ -37,7 +37,7 @@
     "chai-string": "~1.2.0",
     "eslint": "~2.4.0",
     "immutable": "^3.7.4",
-    "injular": ">=0.1.0 <0.2.0",
+    "injular": ">=0.1.1 <0.2.0",
     "istanbul": "^0.4.5",
     "mocha": "~2.4.5",
     "mock-fs": "^4.2.0",
@@ -45,6 +45,6 @@
     "sinon-chai": "~2.8.0"
   },
   "peerDependencies": {
-    "injular": ">=0.1.0 <0.2.0"
+    "injular": ">=0.1.1 <0.2.0"
   }
 }

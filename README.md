@@ -14,7 +14,7 @@ This is a plugin for the awesome [BrowserSync](https://browsersync.io).
 ## Install
 
 ```shell
-$ npm install --save-dev bs-injular browser-sync
+$ npm install --save-dev bs-injular injular@legacy browser-sync
 ```
 
 
